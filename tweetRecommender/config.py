@@ -1,3 +1,4 @@
+import os.path
 from configparser import ConfigParser
 
 CONFIGFILE = "/../conf/application.conf"

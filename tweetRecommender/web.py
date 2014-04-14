@@ -1,8 +1,8 @@
 import requests
 from boilerpipe.extract import Extractor
 
-from tweetrecommender.config import config
-from tweetrecommender.mongoconnector import mongo
+from tweetRecommender.config import config
+from tweetRecommender.mongoconnector import mongo
 
 try:
     from urlparse import urlsplit
