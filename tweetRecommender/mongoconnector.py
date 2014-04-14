@@ -13,3 +13,5 @@ class MongoConnector:
     self.client = MongoClient(config['mongodb']['host'])
     self.client[config['mongodb']['database']].authenticate(config['mongodb']['user'], config['mongodb']['password'])
     self.db = self.client[config['mongodb']['database']]
+
+mongo = MongoConnector()

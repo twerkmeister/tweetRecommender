@@ -1,5 +1,3 @@
-from mongoconnector import MongoConnector
+from mongoconnector import mongo
 
-db = MongoConnector().db
-
-print(db.collection_names())
+print(mongo.db.collection_names())
