@@ -1,5 +1,5 @@
 from mongoconnector import mongo
-import tweetRecommender.web as webprocessor
+import web as webprocessor
 
 def process_initial_subset(processTweets = True, processWeb = False):
 	if processTweets:
