@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from tweetRecommender.config import config
+from config import config
 
 class MongoConnector:
     def __init__(self, cfg=None):
