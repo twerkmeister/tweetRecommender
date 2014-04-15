@@ -6,7 +6,7 @@ Created on Apr 14, 2014
 
 import requests
 from bson.objectid import ObjectId
-from tweetRecommender.mongoconnector import mongo
+from tweetRecommender.mongo import mongo
 
 
 def find_redirect(url):
