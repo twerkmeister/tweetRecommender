@@ -33,7 +33,7 @@ def handle(url):
                                     {"upsert": True})
 
 def handle_mongo(object_id):
-    doc = mongo.db.tweets.find_one({"_id" : ObjectId(object_id)})
+    doc = mongo.by_id('tweets', object_id)
     for url in data["urls"]:
         handle(url)
 
