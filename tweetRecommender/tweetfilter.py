@@ -1,5 +1,9 @@
 from tweetRecommender.config import config
 
+def check(tweet):
+    return check_size(tweet.text) and check_author_credibility(tweet)
+
+
 def check_size(text):
 	cleaned = clean_tweet(text)
 	return len(cleaned) >= config['tweet_min_length']
