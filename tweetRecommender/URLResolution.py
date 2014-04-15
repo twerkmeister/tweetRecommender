@@ -5,47 +5,38 @@ Created on Apr 14, 2014
 '''
 
 import requests
-from tweetRecommender.mongoconnector import mongo
 from bson.objectid import ObjectId
+from tweetRecommender.mongoconnector import mongo
 
 
-def redirectExists(url):
+def find_redirect(url):
     data = mongo.db.redirects.find_one({"from" : url})
-    return bool(data)
+    return data.get("to")
 
-def getRedirects(url):
-    data = mongo.db.redirects.find_one({"from" : url})
-    return data
+def resolve(url):
+    response = requests.head(url)
+    redirect = response.headers['Location']
+    return redirect or url
 
-def webpagesTweetsExist(url):
-    cursor = mongo.db.webpages_tweets.find_one({"url" : url})
-    return bool(cursor)
 
-"""URL Resolution method get from tweets in MongoDB"""
-def URLResolutionMongoDB(objectId):
-    data = mongo.db.tweets.find_one({"_id" : objectId})
-    url = data["urls"][0]
-    urlData = getRedirects(url)
+def handle(url):
+    redirect = find_redirect(url)
+    if not redirect:
+        redirect = resolve(url)
+        mongo.db.redirects.insert(dict(
+            url = url,
+            redirect = redirect,
+        )
 
-    """ check if url exist in redirects collection """
-    if not (bool(urlData)):
-        """ GET redirect url """
-        response = requests.head(url)
-        urlLink = response.headers['Location']
-        mongo.db.redirects.insert({"from" : url, "url" : urlLink})
-    else:
-        urlLink = urlData["to"]
+    mongo.db.webpages_tweets.update({"url": url},
+                                    {"$addToSet": {"tweets": object_id}},
+                                    {"upsert": True})
 
-    """" check whether tweets exist inside the webpages_tweets table"""
-    webpage = mongo.db.webpages_tweets.find_one({"url" : urlLink})
-    if (bool(webpage)):
-        """ use addToSet so there is no duplication in the array """
-        mongo.db.webpages_tweets.update({"url" : urlLink}, {"$addToSet" : {"tweets" : objectId}})
-    else:
-        mongo.db.webpages_tweets.insert({"url" : urlLink,  "tweets" : [objectId]})
+def handle_mongo(object_id):
+    doc = mongo.db.tweets.find_one({"_id" : ObjectId(object_id)})
+    for url in data["urls"]:
+        handle(url)
 
-    print("tweets resolution done")
 
 if __name__ == '__main__':
-    URLResolutionMongoDB(ObjectId("52adb77a00323226c3b871dc"))
-
+    handle_mongo("52adb77a00323226c3b871dc")
