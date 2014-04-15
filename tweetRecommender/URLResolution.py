@@ -4,7 +4,7 @@ Created on Apr 14, 2014
 @author: easten
 '''
 
-import urllib.request
+import requests
 from tweetRecommender.mongoconnector import mongo
 from bson.objectid import ObjectId
 
@@ -30,8 +30,8 @@ def URLResolutionMongoDB(objectId):
     """ check if url exist in redirects collection """
     if not (bool(urlData)):
         """ GET redirect url """
-        response = urllib.request.urlopen(url)
-        urlLink = response.geturl()
+        response = requests.head(url)
+        urlLink = response.headers['Location']
         mongo.db.redirects.insert({"from" : url, "url" : urlLink})
     else:
         urlLink = urlData["to"]
