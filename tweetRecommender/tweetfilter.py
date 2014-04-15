@@ -1,4 +1,4 @@
-from config import config
+from tweetRecommender.config import config
 
 def check_size(text):
 	cleaned = clean_tweet(text)

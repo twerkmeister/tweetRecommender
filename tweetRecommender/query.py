@@ -1,4 +1,4 @@
-from mongoconnector import mongo
+from tweetRecommender.mongoconnector import mongo
 import sys
 
 def gather(url):

@@ -5,7 +5,7 @@ Created on Apr 14, 2014
 '''
 
 import urllib.request
-from mongoconnector import mongo
+from tweetRecommender.mongoconnector import mongo
 from bson.objectid import ObjectId
                                 
     
