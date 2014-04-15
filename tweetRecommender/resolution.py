@@ -11,7 +11,8 @@ from tweetRecommender.mongo import mongo
 
 def find_redirect(url):
     data = mongo.db.redirects.find_one({"from" : url})
-    return data.get("to")
+    if data:
+        return data["to"]
 
 def resolve(url):
     response = requests.head(url)
