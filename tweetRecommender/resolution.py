@@ -16,8 +16,7 @@ def find_redirect(url):
 
 def resolve(url):
     response = requests.head(url)
-    redirect = response.headers['Location']
-    return redirect or url
+    return response.headers.get('Location', url)
 
 
 def handle(url):
