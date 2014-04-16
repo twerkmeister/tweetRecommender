@@ -17,5 +17,5 @@ def process_tweet(tweet):
     tweetprocessor.handle_mongo(tweet.get('_id'))
 
 def process_webpage(webpage):
-    webprocessor.handle(webpage.get(url))
+    webprocessor.handle(webpage.get('url'))
 
