@@ -1,22 +1,20 @@
 import requests
 from boilerpipe.extract import Extractor
+from six.moves.urllib.parse import urlsplit
 
 from tweetRecommender.config import config
 from tweetRecommender.mongo import mongo
 
-try:
-    from urlparse import urlsplit
-except ImportError:
-    from urllib.parse import urlsplit
 
 
 def handle(uri):
     """News Article pipeline."""
     if exists(uri):
         return
-    if blacklisted(uri):
+    try:
+        content = fetch(uri)
+    except RuntimeError:
         return
-    content = fetch(uri)
     cleaned = boilerpipe(content)
     db.webpages.insert(dict(
         url = uri,
@@ -25,6 +23,8 @@ def handle(uri):
 
 def enqueue(uri):
     """Add a webpage to the pipeline."""
+    if blacklisted(uri):
+        return
     #XXX use message queue
     handle(uri)
 
@@ -38,7 +38,10 @@ def blacklisted(uri):
     return domain in config['blacklist']
 
 def fetch(uri):
-    request = requests.get(uri)
+    try:
+        request = requests.get(uri)
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(e)
     return request.text
 
 def boilerpipe(html):

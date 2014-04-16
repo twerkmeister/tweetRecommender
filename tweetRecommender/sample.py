@@ -1,12 +1,6 @@
 import random
+from six.moves import range
 from tweetRecommender.mongo import mongo
-
-try:
-    xrange
-except NameError:
-    pass
-else:
-    range = xrange
 
 
 def random_sample(num_items, source_coll, target_coll):
