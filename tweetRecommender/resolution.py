@@ -18,7 +18,7 @@ def find_redirect(url):
 def resolve(url):
     try:
         response = requests.head(url)
-    except requests.exceptions.RequestError:
+    except requests.exceptions.RequestException:
         return url
     return response.headers.get('Location', url)
 
