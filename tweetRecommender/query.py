@@ -9,8 +9,7 @@ def gather(url):
     index_entry = index.find_one(query)
     tweet_ids = index_entry['tweets'] if index_entry else []
 
-    tweets = [tweets.find_one({"_id": tweet_id})
-              for tweet_id in tweet_ids]
+    tweets = [tweets.find({"_id": {"$in": tweet_ids}})]
     return tweets
 
 def rank(tweets):
