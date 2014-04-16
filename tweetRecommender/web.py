@@ -42,5 +42,6 @@ def fetch(uri):
     return request.text
 
 def boilerpipe(html):
+    EXTRACTOR="DefaultExtractor"
     extractor = Extractor(extractor=EXTRACTOR, html=html)
     return extractor.getText()
