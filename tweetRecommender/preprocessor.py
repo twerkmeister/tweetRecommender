@@ -1,5 +1,6 @@
 from tweetRecommender.mongo import mongo
 import tweetRecommender.web as webprocessor
+import tweetRecommender.resolution as tweetprocessor
 
 def process_initial_subset(process_tweets=True, process_web=False):
     if process_tweets:
@@ -13,8 +14,7 @@ def process_initial_subset(process_tweets=True, process_web=False):
             process_webpage(webpage)
 
 def process_tweet(tweet):
-    pass
-    #do stuff
+    tweetprocessor.handle_mongo(tweet.get('_id'))
 
 def process_webpage(webpage):
     webprocessor.handle(webpage.get(url))
