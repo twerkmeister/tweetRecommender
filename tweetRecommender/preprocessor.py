@@ -1,20 +1,21 @@
-from mongoconnector import mongo
-import web as webprocessor
+from tweetRecommender.mongo import mongo
+import tweetRecommender.web as webprocessor
 
-def process_initial_subset(processTweets = True, processWeb = False):
-	if processTweets:
-		tweets = mongo.db.tweets.find()
-		for tweet in tweets:
-			process_tweet(tweet)
+def process_initial_subset(process_tweets=True, process_web=False):
+    if process_tweets:
+        tweets = mongo.db.tweets.find()
+        for tweet in tweets:
+            process_tweet(tweet)
 
-	if processWeb:
-		webpages = mongo.db.webpages.find()	
-		for webpage in webpages:
-			process_webpage(webpage)
+    if process_web:
+        webpages = mongo.db.webpages.find()
+        for webpage in webpages:
+            process_webpage(webpage)
 
 def process_tweet(tweet):
-	#do stuff
+    pass
+    #do stuff
 
 def process_webpage(webpage):
-	webprocessor.handle(webpage.get(url))
+    webprocessor.handle(webpage.get(url))
 
