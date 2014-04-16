@@ -2,3 +2,10 @@ requests
 pymongo
 configparser
 boilerpipe
+note: do manual installation for python boilerpipe
+	   -  boilerpipe download from repository and run setup.py.	   
+	   -  install JPype1-py3
+	   -  install urlLib3 (change urllib2 to urllib3 in boilerpipe.extract.py)
+	   -  install charade	   
+
+	    
