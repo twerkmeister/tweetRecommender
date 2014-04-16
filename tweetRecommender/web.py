@@ -1,13 +1,10 @@
 import requests
 from boilerpipe.extract import Extractor
+from six.moves.urllib.parse import urlsplit
 
 from tweetRecommender.config import config
 from tweetRecommender.mongo import mongo
 
-try:
-    from urlparse import urlsplit
-except ImportError:
-    from urllib.parse import urlsplit
 
 
 def handle(uri):
