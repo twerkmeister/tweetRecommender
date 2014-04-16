@@ -9,8 +9,13 @@ else:
     range = xrange
 
 def random_sample(num_items, source_coll, target_coll):
-    population = mongo.db[source_coll].count()
+    source = mongo.coll(source_coll)
+    target = mongo.coll(target_coll)
+
+    population = source.count()
     ids = random.sample(range(population), num_items)
+
+    #XXX use $in
     for i in ids:
-        doc = mongo.db[source_coll].find().skip(i).limit(1)
-        mongo.db[target_coll].insert(doc)
+        doc = source.find().skip(i).limit(1)
+        target.insert(doc)
