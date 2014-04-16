@@ -11,8 +11,6 @@ def handle(uri):
     """News Article pipeline."""
     if exists(uri):
         return
-    if blacklisted(uri):
-        return
     try:
         content = fetch(uri)
     except RuntimeError:
@@ -25,6 +23,8 @@ def handle(uri):
 
 def enqueue(uri):
     """Add a webpage to the pipeline."""
+    if blacklisted(uri):
+        return
     #XXX use message queue
     handle(uri)
 
