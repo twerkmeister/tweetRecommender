@@ -7,7 +7,7 @@ from bson.objectid import ObjectId
 import requests
 
 from tweetRecommender.mongo import mongo
-import tweetRecommender.web as webprocessor 
+import tweetRecommender.web as webprocessor
 
 
 def find_redirect(url):
@@ -16,7 +16,10 @@ def find_redirect(url):
         return data["to"]
 
 def resolve(url):
-    response = requests.head(url)
+    try:
+        response = requests.head(url)
+    except requests.exceptions.RequestError:
+        return url
     return response.headers.get('Location', url)
 
 
@@ -27,8 +30,8 @@ def handle(url, object_id):
         mongo.db.redirects.insert(dict(
             url = url,
             redirect = redirect)
-        )    
-    
+        )
+
     mongo.db.webpages_tweets.update({"url": redirect},
                                     {"$addToSet": {"tweets": ObjectId(object_id)}},
                                     {"upsert": True})
