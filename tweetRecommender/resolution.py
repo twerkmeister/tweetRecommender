@@ -31,8 +31,8 @@ def handle(url, object_id):
     
     mongo.db.webpages_tweets.update({"url": redirect},
                                     {"$addToSet": {"tweets": ObjectId(object_id)}},
-                                    {"upsert": True})
-    webprocessor.handle(redirect)
+                                    True)
+    #webprocessor.handle(redirect)
 
 def handle_mongo(object_id):
     docs = mongo.by_id('tweets', object_id)
