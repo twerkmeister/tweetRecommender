@@ -3,10 +3,11 @@ Created on Apr 14, 2014
 
 @author: easten
 '''
-
-import requests
 from bson.objectid import ObjectId
+import requests
+
 from tweetRecommender.mongo import mongo
+import tweetRecommender.web as webprocessor 
 
 
 def find_redirect(url):
@@ -19,23 +20,24 @@ def resolve(url):
     return response.headers.get('Location', url)
 
 
-def handle(url):
+def handle(url, object_id):
     redirect = find_redirect(url)
     if not redirect:
         redirect = resolve(url)
         mongo.db.redirects.insert(dict(
             url = url,
-            redirect = redirect,
-        )
-
-    mongo.db.webpages_tweets.update({"url": url},
-                                    {"$addToSet": {"tweets": object_id}},
+            redirect = redirect)
+        )    
+    
+    mongo.db.webpages_tweets.update({"url": redirect},
+                                    {"$addToSet": {"tweets": ObjectId(object_id)}},
                                     {"upsert": True})
+    webprocessor.handle(redirect)
 
 def handle_mongo(object_id):
-    doc = mongo.by_id('tweets', object_id)
-    for url in data["urls"]:
-        handle(url)
+    docs = mongo.by_id('tweets', object_id)
+    for url in docs["urls"]:
+        handle(url,object_id)
 
 
 if __name__ == '__main__':
