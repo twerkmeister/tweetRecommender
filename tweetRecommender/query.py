@@ -6,7 +6,7 @@ def gather(url):
     tweets = mongo.db.tweets
 
     query = {"url": url}
-    index_entry = webpage_tweets_index.find_one(query)
+    index_entry = index.find_one(query)
     tweet_ids = index_entry['tweets'] if index_entry else []
 
     tweets = [tweets.find_one({"_id": tweet_id})
