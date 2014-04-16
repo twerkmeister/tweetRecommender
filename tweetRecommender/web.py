@@ -13,7 +13,10 @@ def handle(uri):
         return
     if blacklisted(uri):
         return
-    content = fetch(uri)
+    try:
+        content = fetch(uri)
+    except RuntimeError:
+        return
     cleaned = boilerpipe(content)
     db.webpages.insert(dict(
         url = uri,
@@ -35,7 +38,10 @@ def blacklisted(uri):
     return domain in config['blacklist']
 
 def fetch(uri):
-    request = requests.get(uri)
+    try:
+        request = requests.get(uri)
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(e)
     return request.text
 
 def boilerpipe(html):
