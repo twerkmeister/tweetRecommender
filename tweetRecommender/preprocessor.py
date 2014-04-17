@@ -25,7 +25,7 @@ def process_initial_subset(process_tweets=True, process_web=False):
     		w.start()
     		workers.append(w)
 
-        tweets = mongo.db.tweets.find()
+        tweets = mongo.db.tweets.find(timeout=False)
 
         for i, tweet in enumerate(tweets):
         	if (i%10000) == 0:
