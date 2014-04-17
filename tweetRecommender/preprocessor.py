@@ -4,24 +4,47 @@ import tweetRecommender.resolution as tweetprocessor
 
 import multiprocessing as mp
 
+class TweetWorker (mp.Process):
+	def __init__(self, queue):
+		mp.Process.__init__(self)
+		self.queue = queue
+
+	def run(self):
+		while True:
+			tweet = self.queue.get()
+			process_tweet(tweet)
+
+
 def process_initial_subset(process_tweets=True, process_web=False):
     if process_tweets:
-    	q = mp.Queue()
-    	p = mp.Process(target=process_tweet, args=(q,))
-    	p.start()
+    	q = mp.Queue(1000)
+
+    	workers = []
+    	for i in range(mp.cpu_count()):
+    		w = TweetWorker(q)
+    		w.start()
+    		workers.append(w)
+
         tweets = mongo.db.tweets.find()
-        for tweet in tweets:
-            q.put(tweet.get('_id'))
-        p.join()
+
+        for i, tweet in enumerate(tweets):
+        	if (i%10000) == 0:
+        		print i
+        	q.put(tweet)
+
+        for w in workers:
+        	w.join()
+
+
+        
 
     if process_web:
         webpages = mongo.db.webpages.find()
         for webpage in webpages:
             process_webpage(webpage)
 
-def process_tweet(tweet_queue):
-	tweet_id = tweet_queue.get()
-    tweetprocessor.handle_mongo(tweet_id)
+def process_tweet(tweet):
+	tweetprocessor.handle_tweet(tweet)
 
 def process_webpage(webpage):
     webprocessor.handle(webpage.get('url'))

@@ -27,11 +27,7 @@ def handle(url, object_id):
     redirect = find_redirect(url)
     if not redirect:
         redirect = resolve(url)
-        mongo.db.redirects.insert(dict(
-            url = url,
-            redirect = redirect)
-        )
-
+        mongo.db.redirects.insert({'from': url, 'to': redirect})
     mongo.db.webpages_tweets.update({"url": redirect},
                                     {"$addToSet": {"tweets": ObjectId(object_id)}},
                                     True)
@@ -40,7 +36,11 @@ def handle(url, object_id):
 def handle_mongo(object_id):
     docs = mongo.by_id('tweets', object_id)
     for url in docs["urls"]:
-        handle(url,object_id)
+        handle(url, object_id)
+
+def handle_tweet(tweet):
+    for url in tweet["urls"]:
+        handle(url, tweet['_id'])
 
 
 if __name__ == '__main__':
