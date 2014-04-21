@@ -1,6 +1,6 @@
 from tweetRecommender.mongo import mongo
 import tweetRecommender.web as webprocessor
-import tweetRecommender.resolution as tweetprocessor
+import tweetRecommender.tweet as tweetprocessor
 
 import multiprocessing as mp
 
@@ -44,7 +44,7 @@ def process_initial_subset(process_tweets=True, process_web=False):
             process_webpage(webpage)
 
 def process_tweet(tweet):
-	tweetprocessor.handle_tweet(tweet)
+	tweetprocessor.handle(tweet)
 
 def process_webpage(webpage):
     webprocessor.handle(webpage.get('url'))
