@@ -30,7 +30,7 @@ def enqueue(uri):
 
 
 def exists(uri):
-    doc = mongo.db.webpages.find_one(dict(url = uri))
+    doc = mongo.db.webpages.find_one(dict(url = uri), {'url'})
     return bool(doc)
 
 def blacklisted(uri):
