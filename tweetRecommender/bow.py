@@ -6,23 +6,34 @@ from gensim import corpora, models, similarities
 import string
 
 class MongoCorpus(object):
-	def __init__(self):
-		self.ps = PorterStemmer()
-		self.stopwords = stopwords.words('english')
-		self.stopwords.extend(["'re", "n't", "'s"])
-	
+	def __init__(self, dictionary):
+		self.dictionary = dictionary
+
 	def __iter__(self):
-		for doc in mongo.db.webpages.find().skip(172).limit(1):
-			yield [w.lower() for s in sent_tokenize(doc["content"]) for w in word_tokenize(s) if not (w in string.punctuation) and not (w.lower() in self.stopwords)]
+		for doc in subset():
+			yield dictionary.doc2bow(tokenize(doc))
+
+ps = PorterStemmer()
+stopwords = stopwords.words('english')
+stopwords.extend(["'re", "n't", "'s"])
+
+def subset():
+	return mongo.db.webpages.find().skip(172).limit(100)
+
+def tokenize(doc):
+	return [ps.stem(w) for s in sent_tokenize(doc["content"].lower()) for w in word_tokenize(s)]
 
 if __name__ == '__main__':
-	corpus = MongoCorpus()
-	texts = []
-	for doc in corpus:
-		print len(doc)
-		texts.append(doc)
-		#print doc
-		#pass
-
-	dictionary = corpora.Dictionary(texts)
+	# Building Dictionary
+	dictionary = corpora.Dictionary(tokenize(doc) for doc in subset())
 	print dictionary
+	dictionary.filter_tokens([dictionary.token2id[stopword] for stopword in stopwords if stopword in dictionary.token2id] + [dictionary.token2id[token] for token in string.punctuation if token in dictionary.token2id])
+	dictionary.compactify()
+	print dictionary
+
+	dictionary.save("tmp/mongocorpus.dict")
+
+	# Working with corpus
+	corpus = MongoCorpus(dictionary)
+	
+	corpora.MmCorpus.serialize("tmp/corpus.mm", corpus)
