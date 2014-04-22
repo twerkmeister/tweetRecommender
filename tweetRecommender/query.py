@@ -9,7 +9,7 @@ def gather(url):
     index_entry = index.find_one(query)
     tweet_ids = index_entry['tweets'] if index_entry else []
 
-    tweets = [tweets.find({"_id": {"$in": tweet_ids}})]
+    tweets = tweets.find({"_id": {"$in": tweet_ids}})
     return tweets
 
 def rank(tweets):
@@ -26,10 +26,10 @@ def main(uri):
     ranked_tweets = rank(tweets)
     print("Ranking:")
     for tweet, score in ranked_tweets:
-        print("[%.2f] text: %s" % (score, tweet.text))
+        print("[%.2f] text: %s" % (score, tweet["text"].encode("utf-8")))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  
     if len(sys.argv) < 2:
         print("please provide a url")
         sys.exit(1)
