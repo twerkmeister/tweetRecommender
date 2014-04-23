@@ -2,44 +2,19 @@ from tweetRecommender.mongo import mongo
 import tweetRecommender.web as webprocessor
 import tweetRecommender.tweet as tweetprocessor
 
-import multiprocessing as mp
+from tornado import gen
 
-class TweetWorker (mp.Process):
-    def __init__(self, queue):
-        mp.Process.__init__(self)
-        self.queue = queue
-
-    def run(self):
-        while True:
-            tweet = self.queue.get()
-            process_tweet(tweet)
-
-
+@gen.coroutine
 def process_initial_subset(process_tweets=True, process_web=False):
     if process_tweets:
-        q = mp.Queue(1000)
-
-        workers = []
-        for i in range(mp.cpu_count()):
-            w = TweetWorker(q)
-            w.start()
-            workers.append(w)
-
-        tweets = mongo.db.tweets.find(timeout=False)
-
-        for i, tweet in enumerate(tweets):
-            if i%10000 == 0:
-                print i
-            q.put(tweet)
-
-        for w in workers:
-            w.join()
-
+        tweets = mongo.db.tweets.find()
+        while(yield tweets.fetch_next):
+            process_tweet(tweets.next_object())
 
     if process_web:
         webpages = mongo.db.webpages.find()
-        for webpage in webpages:
-            process_webpage(webpage)
+        while(yield webpages.fetch_next):
+            process_webpage(webpages.next_object())
 
 def process_tweet(tweet):
     tweetprocessor.handle(tweet)

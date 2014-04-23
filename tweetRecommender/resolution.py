@@ -4,43 +4,69 @@ Created on Apr 14, 2014
 @author: easten
 '''
 from bson.objectid import ObjectId
-import requests
 
 from tweetRecommender.mongo import mongo
+from tornado import ioloop
+from tornado.httpclient import *
+from tornado import gen
 
+class RedirectResolver():
 
-def find_redirect(url):
-    data = mongo.db.redirects.find_one({"from" : url})
-    if data:
-        return data["to"]
+    def __init__(self):
+        AsyncHTTPClient.configure("tornado.simple_httpclient.SimpleAsyncHTTPClient", max_clients=100)
+        self.http_client = AsyncHTTPClient()
 
-def resolve(url):
-    try:
-        response = requests.head(url)
-    except requests.exceptions.RequestException:
-        return url
-    return response.headers.get('Location', url)
+    @gen.coroutine
+    def find_redirect(self, url):
+        redirect = yield mongo.db.redirects.find_one({"from" : url})
+        if redirect:
+            raise gen.Return(redirect["to"])
+    @gen.coroutine
+    def resolve_redirect(self, url):
+        print "resolving redirect"
+        request = HTTPRequest(url=url, connect_timeout=10.0, request_timeout=10.0)
+        try:
+            response = yield self.http_client.fetch(request)
+        except HTTPError as e:
+            if e.code == 599:
+                #handle timeout
+                pass
+            raise gen.Return(None)
+        print "final url:", response.effective_url
+        raise gen.Return(response.effective_url)
 
+    @gen.coroutine
+    def handle(self, url, _id):
+        redirect = yield self.find_redirect(url)
+        if not redirect:
+            redirect = yield self.resolve_redirect(url)
+            if redirect:
+                mongo.db.redirects.insert({'from': url, 'to': redirect.encode("utf-8")})
+        if redirect:
+            mongo.db.webpages_tweets.update({"url": redirect.encode("utf-8")},
+                                            {"$addToSet": {"tweets": ObjectId(_id)}},
+                                            True)
+            raise gen.Return(redirect)
+        else:
+            raise gen.Return(None)
 
-def handle(url, object_id):
-    redirect = find_redirect(url)    
-    if not redirect:
-        redirect = resolve(url)
-        mongo.db.redirects.insert({'from': url, 'to': redirect.encode("utf-8")})
-    mongo.db.webpages_tweets.update({"url": redirect},
-                                    {"$addToSet": {"tweets": ObjectId(object_id)}},
-                                    True)
-    #webprocessor.handle(redirect)
+    @gen.coroutine
+    def handle_tweet_id(self, _id):
+        tweet = yield mongo.by_id('tweets', _id)
+        self.handle_tweet(tweet)
 
-def handle_mongo(object_id):
-    docs = mongo.by_id('tweets', object_id)
-    for url in docs["urls"]:
-        handle(url, object_id)
+    def handle_tweet(self, tweet):
+        for url in tweet["urls"]:
+            self.handle(url, tweet['_id'])
 
-def handle_tweet(tweet):
-    for url in tweet["urls"]:
-        handle(url, tweet['_id'])
+def main():
+    resolver = TweetResolver()
+    resolver.handle_tweet_id("52adb77a00323226c3b871dc")
 
+def handle(url, _id):
+    resolver = TweetResolver()
+    resolver.handle(url, _id)
 
 if __name__ == '__main__':
-    handle_mongo("52adb77a00323226c3b871dc")
+    main()
+    ioloop.IOLoop.instance().start()
