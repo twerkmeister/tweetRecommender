@@ -17,8 +17,9 @@ class MongoCorpus(object):
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 ps = PorterStemmer()
-stopwords = stopwords.words('english')
-stopwords.extend(["'re", "n't", "'s"])
+stops = stopwords.words('english')
+stops.extend(["'re", "n't", "'s"])
+stops.extend(string.punctuation)
 
 def subset():
 	return mongo.db.sample_webpages.find()
@@ -30,7 +31,7 @@ if __name__ == '__main__':
 	# Building Dictionary
 	dictionary = corpora.Dictionary(tokenize(doc) for doc in subset())
 	print dictionary
-	dictionary.filter_tokens([dictionary.token2id[stopword] for stopword in stopwords if stopword in dictionary.token2id] + [dictionary.token2id[token] for token in string.punctuation if token in dictionary.token2id])
+	dictionary.filter_tokens([dictionary.token2id[stopword] for stopword in stops if stopword in dictionary.token2id])
 	dictionary.compactify()
 	print dictionary
 
