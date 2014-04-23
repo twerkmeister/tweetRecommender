@@ -7,7 +7,6 @@ from bson.objectid import ObjectId
 import requests
 
 from tweetRecommender.mongo import mongo
-import tweetRecommender.web as webprocessor
 
 
 def find_redirect(url):
@@ -27,7 +26,7 @@ def handle(url, tweet_id):
     redirect = find_redirect(url)
     if not redirect:
         redirect = resolve(url)
-        mongo.db.redirects.insert({'from': url, 'to': redirect})
+        mongo.db.redirects.insert({'from': url, 'to': redirect.encode('utf-8')})
 
     mongo.db.tweets.update({'_id': tweet_id},
                            {'$addToSet': {'full_urls': redirect}})
