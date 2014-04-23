@@ -4,6 +4,7 @@ from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 from gensim import corpora, models, similarities
 import string
+import logging
 
 class MongoCorpus(object):
 	def __init__(self, dictionary):
@@ -13,12 +14,14 @@ class MongoCorpus(object):
 		for doc in subset():
 			yield dictionary.doc2bow(tokenize(doc))
 
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+
 ps = PorterStemmer()
 stopwords = stopwords.words('english')
 stopwords.extend(["'re", "n't", "'s"])
 
 def subset():
-	return mongo.db.webpages.find().skip(172).limit(1000)
+	return mongo.db.sample_webpages.find()
 
 def tokenize(doc):
 	return [ps.stem(w) for s in sent_tokenize(doc["content"].lower()) for w in word_tokenize(s)]
@@ -35,8 +38,15 @@ if __name__ == '__main__':
 
 	# Working with corpus
 	corpus = MongoCorpus(dictionary)
-	
-	corpora.MmCorpus.serialize("tmp/corpus.mm", corpus)
 
-	model = models.ldamodel.LdaModel(corpus, id2word=dictionary, num_topics=10)
-	model.print_topics(2)
+	corpora.MmCorpus.serialize("tmp/corpus.mm", corpus)
+	mm = corpora.MmCorpus("tmp/corpus.mm")
+	print mm
+
+	tfidf = models.TfidfModel(corpus)
+	corpus_tfidf = tfidf[corpus]
+
+	model = models.ldamodel.LdaModel(corpus_tfidf, id2word=dictionary, num_topics=10, iterations=10000)
+	model.save("tmp/model.lda")
+	print model
+	print model.show_topics()
