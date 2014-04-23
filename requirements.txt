@@ -3,3 +3,5 @@ pymongo
 configparser
 boilerpipe
 six
+gensim
+nltk
