@@ -23,20 +23,20 @@ def resolve(url):
     return response.headers.get('Location', url)
 
 
-def handle(url, object_id):
+def handle(url, tweet_id):
     redirect = find_redirect(url)
     if not redirect:
         redirect = resolve(url)
         mongo.db.redirects.insert({'from': url, 'to': redirect})
-    mongo.db.webpages_tweets.update({"url": redirect},
-                                    {"$addToSet": {"tweets": ObjectId(object_id)}},
-                                    True)
-    #webprocessor.handle(redirect)
 
-def handle_mongo(object_id):
-    docs = mongo.by_id('tweets', object_id)
-    for url in docs["urls"]:
-        handle(url, object_id)
+    mongo.db.tweets.update({'_id': tweet_id},
+                           {'$addToSet': {'full_urls': redirect}})
+    return redirect
+
+def handle_mongo(tweet_id):
+    doc = mongo.by_id('tweets', tweet_id)
+    for url in doc["urls"]:
+        handle(url, tweet_id)
 
 def handle_tweet(tweet):
     for url in tweet["urls"]:

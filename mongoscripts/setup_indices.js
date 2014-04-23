@@ -1,3 +1,4 @@
-db.webpages_tweets.ensureIndex({url: "hashed"})
+db.tweets.ensureIndex({full_urls: 1})  // multikey
+db.tweets.ensureIndex({hashtags: 1})  // multikey
 db.webpages.ensureIndex({url: "hashed"})
 db.redirects.ensureIndex({from: "hashed"})
