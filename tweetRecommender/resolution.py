@@ -21,6 +21,9 @@ class RedirectResolver():
         redirect = yield mongo.db.redirects.find_one({"from" : url})
         if redirect:
             raise gen.Return(redirect["to"])
+        else:
+            raise gen.Return(None)
+
     @gen.coroutine
     def resolve_redirect(self, url):
         print "resolving redirect"
@@ -32,7 +35,6 @@ class RedirectResolver():
                 #handle timeout
                 pass
             raise gen.Return(None)
-        print "final url:", response.effective_url
         raise gen.Return(response.effective_url)
 
     @gen.coroutine
@@ -59,14 +61,15 @@ class RedirectResolver():
         for url in tweet["urls"]:
             self.handle(url, tweet['_id'])
 
+resolver = RedirectResolver()
 def main():
-    resolver = TweetResolver()
     resolver.handle_tweet_id("52adb77a00323226c3b871dc")
 
+@gen.coroutine
 def handle(url, _id):
-    resolver = TweetResolver()
-    resolver.handle(url, _id)
+    redirect = yield resolver.handle(url, _id)
+    raise gen.Return(redirect)
 
 if __name__ == '__main__':
     main()
-    ioloop.IOLoop.instance().start()
+    #ioloop.IOLoop.instance().start()

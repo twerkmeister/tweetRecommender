@@ -3,6 +3,7 @@ import tweetRecommender.web as webprocessor
 import tweetRecommender.tweet as tweetprocessor
 
 from tornado import gen
+from tornado import ioloop
 
 @gen.coroutine
 def process_initial_subset(process_tweets=True, process_web=False):
@@ -33,3 +34,5 @@ if __name__ == '__main__':
         process_initial_subset()
     else:
         process_initial_subset(sys.argv[1], sys.argv[2])
+
+    ioloop.IOLoop.instance().start()
