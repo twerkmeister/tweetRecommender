@@ -46,8 +46,7 @@ class RedirectResolver():
                 mongo.db.redirects.insert({'from': url, 'to': redirect.encode("utf-8")})
         if redirect:
             mongo.db.tweets.update({'_id': ObjectId(_id)},
-                                   {'$addToSet': {'full_urls': redirect.encode("utf-8")}}, 
-                                   True)            
+                                   {'$addToSet': {'full_urls': redirect.encode("utf-8")}})            
             raise gen.Return(redirect)
         else:
             raise gen.Return(None)
