@@ -47,7 +47,7 @@ if __name__ == '__main__':
 	tfidf = models.TfidfModel(corpus)
 	corpus_tfidf = tfidf[corpus]
 
-	model = models.ldamodel.LdaModel(corpus_tfidf, id2word=dictionary, num_topics=10, iterations=10000)
-	model.save("tmp/model.lda")
+	model = models.lsimodel.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=10, onepass=False)
+	model.save("tmp/model.lsi")
 	print model
 	print model.show_topics()
