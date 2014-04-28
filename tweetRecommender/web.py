@@ -6,7 +6,6 @@ from tweetRecommender.config import config
 from tweetRecommender.mongo import mongo
 
 
-
 def handle(uri):
     """News Article pipeline."""
     if exists(uri):
@@ -34,8 +33,11 @@ def exists(uri):
     return bool(doc)
 
 def blacklisted(uri):
+    if "://" not in uri:
+        uri = "http://" + uri
     domain = urlsplit(uri).hostname
-    return domain in config['blacklist']
+    return any(domain.split('.', nsuffix)[-1] in config['blacklist']
+               for nsuffix in range(domain.count('.')+1))
 
 def fetch(uri):
     try:

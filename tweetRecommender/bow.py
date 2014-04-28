@@ -15,7 +15,7 @@ class MongoCorpus(object):
 			yield dictionary.doc2bow(tokenize(doc))
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-
+minlength = 3
 ps = PorterStemmer()
 stops = stopwords.words('english')
 stops.extend(["'re", "n't", "'s"])
@@ -31,7 +31,12 @@ if __name__ == '__main__':
 	# Building Dictionary
 	dictionary = corpora.Dictionary(tokenize(doc) for doc in subset())
 	print dictionary
+	#remove terms occur only in single document
+	once_ids = [tokenid for tokenid, docfreq in dictionary.dfs.iteritems() if docfreq == 1]
+	#remove terms length less than minimal length 	
+	less_ids = [dictionary.token2id[tokenid] for tokenid in dictionary.token2id if len(tokenid) <= minlength]
 	dictionary.filter_tokens([dictionary.token2id[stopword] for stopword in stops if stopword in dictionary.token2id])
+	dictionary.filter_tokens(once_ids + less_ids)
 	dictionary.compactify()
 	print dictionary
 
