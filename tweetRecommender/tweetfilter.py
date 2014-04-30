@@ -15,7 +15,8 @@ def clean_tweet(text):
     text = re.sub('@[^\s]+','',text) #Convert @username to EMPTY STRING    
     text = re.sub('[\s]+', ' ', text) #Remove additional white spaces    
     text = re.sub(r'#([^\s]+)', r'\1', text) #Replace #word with word
-    text = re.sub(r'\brt\b','', text) #Replace retweet with empty string    
+    text = re.sub(r'\brt\b','', text) #Replace retweet with empty string
+    text = re.sub(r'[^\x00-\x7F]+','', text); #replace non-ascii character (some word contains arabs word, etc)    
     text = text.strip('\'"') #trim        
     return text
 
@@ -34,4 +35,4 @@ def check_author_credibility(user):
 	return True
     
 if __name__ == "__main__":        
-    print clean_tweet("RT @RevolutionSyria: (08-15-13) #Daraa #Syria l Rebels Lay Siege to #Assad Hagana Battalion by border in Daraa http://t.co/RMfQhlU2Jr http://www.test.com")    
+    print clean_tweet("RT @RevolutionSyria: (08-15-13) #Daraa #Syria l Rebels Lay Siege to #Assad Hagana Battalion by border in Daraa http://t.co/RMfQhlU2Jr https://www.test.com")    
