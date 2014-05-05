@@ -10,7 +10,6 @@ import re
 from sets import Set
  
 ps = PorterStemmer()
-table = string.maketrans("","")
 
 def get_stopwords():
     stops = stopwords.words('english')
@@ -20,7 +19,7 @@ def get_stopwords():
 #thanks to http://stackoverflow.com/questions/3845423/remove-empty-strings-from-a-list-of-strings
 def strip_regex(word):       
     #return re.sub(r'[^\w\s]','',word)  #remove word only
-    return re.sub(r'[^a-zA-Z\s]','',word) #remove number as well
+    return re.sub(r'[^a-zA-Z\s]',None,word) #remove number as well
 
 def strip_trans(s):
     return s.translate(None, string.punctuation)
