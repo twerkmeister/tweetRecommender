@@ -21,13 +21,15 @@ def subset():
 	return mongo.db.sample_webpages.find()
 
 def tokenize(doc):
-	return [ps.stem(w) for s in sent_tokenize(doc["content"].lower()) for w in word_tokenize(s)]
+	return [ps.stem(w) for s in sent_tokenize(doc["content"].lower()) 
+			for w in word_tokenize(s)]
 
 def get_model(dictionary, corpus):
 	tfidf = models.TfidfModel(corpus)
 	corpus_tfidf = tfidf[corpus]
 
-	model = models.ldamodel.LdaModel(corpus_tfidf, id2word=dictionary, num_topics=200, iterations=5000)
+	model = models.ldamodel.LdaModel(corpus_tfidf, id2word=dictionary, 
+									num_topics=200, iterations=5000)
 	return model
 
 def create_dictionary(path, overwrite=False):
@@ -42,11 +44,18 @@ def create_dictionary(path, overwrite=False):
 
 	dictionary = corpora.Dictionary(tokenize(doc) for doc in subset())
 	#remove terms occur only in single document
-	once_ids = [tokenid for tokenid, docfreq in dictionary.dfs.iteritems() if docfreq == 1]
+	once_ids = [tokenid for tokenid, docfreq 
+						in dictionary.dfs.iteritems() 
+						if docfreq == 1]
 	#remove terms length less than minimal length 	
-	less_ids = [dictionary.token2id[tokenid] for tokenid in dictionary.token2id if len(tokenid) <= minlength]
-	dictionary.filter_tokens([dictionary.token2id[stopword] for stopword in stops if stopword in dictionary.token2id])
-	dictionary.filter_tokens(once_ids + less_ids)
+	less_ids = [dictionary.token2id[tokenid] for tokenid 
+											in dictionary.token2id 
+											if len(tokenid) <= minlength]
+	#remove stop words
+	stop_ids = [dictionary.token2id[stopword] for stopword 
+											in stops 
+											if stopword in dictionary.token2id]
+	dictionary.filter_tokens(once_ids + less_ids + stop_ids)
 	dictionary.compactify()
 	dictionary.save(path)
 	return dictionary
@@ -60,7 +69,8 @@ def create_corpus(path, overwrite=False):
 	return corpus
 
 if __name__ == '__main__':
-	logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+	logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', 
+						level=logging.INFO)
 
 	dict_path = "tmp/mongocorpus.dict"
 	corpus_path = "tmp/corpus.mm"
@@ -68,4 +78,4 @@ if __name__ == '__main__':
 	dictionary = create_dictionary(dict_path)
 	corpus = create_corpus(corpus_path)
 
-	get_model(dictionary, corpus)
+	model = get_model(dictionary, corpus)
