@@ -16,7 +16,9 @@ def clean_tweet(text):
     text = re.sub('[\s]+', ' ', text) #Remove additional white spaces    
     text = re.sub(r'#([^\s]+)', r'\1', text) #Replace #word with word
     text = re.sub(r'\brt\b','', text) #Replace retweet with empty string
-    text = re.sub(r'[^\x00-\x7F]+','', text); #replace non-ascii character (some word contains arabs word, etc)    
+    text = re.sub(r'[^\x00-\x7F]+','', text); #replace non-ascii character (some word contains arabs word, etc)
+    text = re.sub(r'[^\w\s]','',text)  #remove  punctuation only #thanks to http://stackoverflow.com/questions/3845423/remove-empty-strings-from-a-list-of-strings
+    #text = re.sub(r'[^a-zA-Z\s]',None,text) #remove punctuation and number as well     
     text = text.strip('\'"') #trim        
     return text
 
