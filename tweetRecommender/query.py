@@ -20,10 +20,13 @@ def rank(tweets):
     ranked_tweets.sort(key=lambda pair: pair[1], reverse=True)
     return ranked_tweets
 
-
-def main(uri):
+def query(uri):
     tweets = gather(uri)
     ranked_tweets = rank(tweets)
+    return ranked_tweets
+
+def main(uri):
+    ranked_tweets = query(uri)
     print("Ranking:")
     for tweet, score in ranked_tweets:
         print("[%.2f] text: %s" % (score, tweet["text"].encode("utf-8")))
