@@ -2,8 +2,8 @@ from tweetRecommender.mongo import mongo
 from tweetRecommender import query
 
 def gold_standard(uri):
-    tweets = mongo.coll("sample_tweets")
-    tweets.find({"full_urls": uri})
+    tweets = mongo.coll("sample_tweets").find({"full_urls": uri})
+    print tweets.count()
     return tweets
 
 def evaluate_webpage(uri):
@@ -13,7 +13,7 @@ def evaluate_webpage(uri):
     found = 0
     combined_score = 0
 
-    for tweet, score in result:
+    for score, tweet in result:
         if tweet in reference:
             found += 1
             combinedScore += score

@@ -11,10 +11,11 @@ def gather(url):
     query = {"url" : url}
     webpage = webpages_coll.find_one(query)
     news_terms = Set(tweettokenization.tokenize_tweets(webpage["content"].encode("utf-8")));
-    tweets = tweets_coll.find({ "hashtags": { "$in": list(news_terms) } })
-    return (webpage, tweets, news_terms)                                        
+    tweets = tweets_coll.find({ "terms": { "$in": list(news_terms) } }).batch_size(1000)
 
-def rank(webpage, tweets, news_terms, topK=10):        
+    return (tweets, news_terms)                                        
+
+def rank(tweets, news_terms, topK=10000):        
     queue = PriorityQueue(topK)        
     def calculate_score(tweet):
         tweet_terms = Set(tweet["terms"])
@@ -27,7 +28,7 @@ def rank(webpage, tweets, news_terms, topK=10):
         if not queue.full():
             queue.put((score, tweet)) 
         elif (score > queue.queue[0][0]):            
-            queue.get()                
+            queue.get()               
             queue.put((score, tweet))
     
     queue.queue.sort(reverse=True)
@@ -35,11 +36,11 @@ def rank(webpage, tweets, news_terms, topK=10):
 
 
 def main(uri):    
-    webpage,tweets, news_terms = gather(uri)
-    ranked_tweets = rank(webpage, tweets, news_terms)
-    print("Ranking:")    
+    tweets, news_terms = gather(uri)
+    ranked_tweets = rank(tweets, news_terms)
+    print("Ranking:")
     for score, tweet in ranked_tweets:        
-        print("[%.2f] text: %s" % (score, tweet["text"].encode("utf-8")))
+        print("[%.6f] text: %s" % (score, tweet["text"].encode("utf-8")))
 
 
 if __name__ == "__main__":        
