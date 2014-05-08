@@ -6,4 +6,3 @@ six
 gensim
 nltk
 numpy
-scipy
