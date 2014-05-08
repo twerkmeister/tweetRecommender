@@ -18,10 +18,10 @@ def get_stopwords():
 
 def tokenize_tweets(text):    
     text = tweetfilter.clean_tweet(text)    
-    return [ps.stem(w) for s in sent_tokenize(text) for w in word_tokenize(s)]
+    return [ps.stem(w) for w in word_tokenize(text) if not w in get_stopwords()]    
 
 def handle(text, tweet_id):    
-    tokens = list(Set([token for token in tokenize_tweets(text.encode("utf-8")) if token not in get_stopwords()]))    
+    tokens = list(Set([token for token in tokenize_tweets(text.encode("utf-8"))]))    
     mongo.db.sample_tweets.update({'_id': ObjectId(tweet_id)}, 
                                   { '$set': {'terms':  tokens } })
     print "update: ", tokens
