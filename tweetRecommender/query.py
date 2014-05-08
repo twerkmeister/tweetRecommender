@@ -5,12 +5,12 @@ import sys
 def gather(url):
     return q.gather(url)
 
-def rank(tweets):
-    return q.rank(tweets)
+def rank(webpage, tweets):
+    return q.rank(webpage, tweets)
 
 def query(uri):
-    tweets = gather(uri)
-    ranked_tweets = rank(tweets)
+    webpage, tweets = gather(uri)
+    ranked_tweets = rank(webpage, tweets)
     return ranked_tweets
 
 def main(uri):

@@ -10,9 +10,9 @@ def gather(url):
     tweet_ids = index_entry['tweets'] if index_entry else []
 
     tweets = tweets.find({"_id": {"$in": tweet_ids}})
-    return tweets
+    return (None, tweets)
 
-def rank(tweets):
+def rank(webpage, tweets):
     def score(tweet):
         return tweet["user"]["followers_count"]
 
