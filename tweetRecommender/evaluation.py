@@ -20,10 +20,13 @@ def evaluate_webpage(uri):
     precision = found / len(result)
     recall = found / len(reference)
 
+    print uri + ":", len(reference), "relevant documents"
+    print (precision, recall), "(precision, recall)"
+
     return (precision, recall)
 
 def get_testset():
-    return mongo.coll("sample_webpages_test").find()
+    return mongo.coll("sample_webpages_test").find().skip(100).limit(2)
 
 def main():
     testset = get_testset()
@@ -31,7 +34,6 @@ def main():
     result = []
     for doc in testset:
         tmp = evaluate_webpage(doc["url"])
-        print doc["url"] + ":", tmp, "(precision, recall)"
         result.append(tmp)
         total = (total[0] + tmp[0], total[1] + tmp[1])
 
