@@ -29,8 +29,7 @@ def get_model(dictionary, corpus):
     tfidf = models.TfidfModel(corpus)
     corpus_tfidf = tfidf[corpus]
 
-    model = models.ldamodel.LdaModel(corpus_tfidf, id2word=dictionary, 
-                                    num_topics=200, iterations=5000)
+    model = models.LdaMallet("/home/christian/mallet-2.0.7/bin/mallet", corpus=corpus, id2word=dictionary, num_topics=50)
     return model
 
 def create_dictionary(path, overwrite=False):

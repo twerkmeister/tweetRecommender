@@ -30,4 +30,8 @@ def main():
         result.append(evaluate_webpage(doc["url"]))
 
 if __name__ == '__main__':
-    main()
+    import sys
+    if len(sys.argv) > 1:
+        print evaluate_webpage(sys.argv[1])
+    else:
+        main()
