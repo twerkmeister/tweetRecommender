@@ -20,13 +20,15 @@ def evaluate_webpage(uri):
     precision = found / len(result)
     recall = found / len(reference)
 
-    print uri + ":", len(reference), "relevant documents"
+    print uri + ":"
+    print len(reference), "relevant tweets", "-", found, "found tweets"
     print (precision, recall), "(precision, recall)"
+    print "\n"
 
     return (precision, recall)
 
 def get_testset():
-    return mongo.coll("sample_webpages_test").find().skip(100).limit(2)
+    return mongo.coll("sample_webpages_test").find()
 
 def main():
     testset = get_testset()
