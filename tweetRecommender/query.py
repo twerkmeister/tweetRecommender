@@ -16,8 +16,8 @@ def query(uri):
 def main(uri):
     ranked_tweets = query(uri)
     print("Ranking:")
-    for tweet, score in ranked_tweets:
-        print("[%.2f] text: %s" % (score, tweet["text"].encode("utf-8")))
+    for score, tweet in ranked_tweets:
+        print("[%.6f] text: %s" % (score, tweet["text"].encode("utf-8")))
 
 
 if __name__ == "__main__":  

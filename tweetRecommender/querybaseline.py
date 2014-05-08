@@ -15,7 +15,7 @@ def gather(url):
 
     return (tweets, news_terms)                                        
 
-def rank(tweets, news_terms, topK=10000):        
+def rank(tweets, news_terms, topK=100):        
     queue = PriorityQueue(topK)        
     def calculate_score(tweet):
         tweet_terms = Set(tweet["terms"])
