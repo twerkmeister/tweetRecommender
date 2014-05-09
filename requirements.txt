@@ -5,3 +5,4 @@ boilerpipe
 six
 gensim
 nltk
+numpy
