@@ -20,14 +20,15 @@ def tokenize_tweets(text):
     text = tweetfilter.clean_tweet(text)    
     return [ps.stem(w) for s in sent_tokenize(text) for w in word_tokenize(s)]
 
-def handle(text, tweet_id):    
+def handle(tweet, bulk):
+    text = tweet["text"]
+    tweet_id = tweet["_id"]
     tokens = list(Set([token for token in tokenize_tweets(text.encode("utf-8")) if token not in get_stopwords()]))    
-    mongo.db.sample_tweets.update({'_id': ObjectId(tweet_id)}, 
-                                  { '$set': {'terms':  tokens } })
+    bulk.find({'_id': tweet_id}).update({'$set': {'terms': tokens}})
     print "update: ", tokens
     
 if __name__ == '__main__':
+    bulk = mongo.db.sample_tweets.initialize_unordered_bulk_op()
     for tweet in mongo.db.sample_tweets.find():
-        handle(tweet["text"], tweet["_id"])
-
-    
+        handle(tweet, bulk)
+    bulk.execute()
