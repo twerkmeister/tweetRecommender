@@ -17,8 +17,12 @@ def evaluate_webpage(uri):
             found += 1
             combined_score += score
 
-    precision = found / len(result)
-    recall = found / len(reference)
+    precision = 0.0
+    if len(result) > 0:
+        precision = found / len(result)
+    recall = 0.0
+    if len(reference) > 0:
+        recall = found / len(reference)
 
     print uri + ":"
     print len(reference), "relevant tweets", "-", found, "found tweets"
@@ -28,13 +32,16 @@ def evaluate_webpage(uri):
     return (precision, recall)
 
 def get_testset():
-    return mongo.coll("sample_webpages_test").find()
+    return mongo.coll("sample_webpages_test").find().limit(50)
 
 def main():
     testset = get_testset()
     total = (0, 0)
     result = []
+    count = 1
     for doc in testset:
+        print "Doc #", count
+        count += 1
         tmp = evaluate_webpage(doc["url"])
         result.append(tmp)
         total = (total[0] + tmp[0], total[1] + tmp[1])
