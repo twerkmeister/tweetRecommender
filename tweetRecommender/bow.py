@@ -34,7 +34,7 @@ def get_model(dictionary, corpus):
 
 def create_dictionary(path, overwrite=False):
     if os.path.isfile(path) and not overwrite:
-        return corpora.Dictionary.load(dict_path)
+        return corpora.Dictionary.load(path)
 
     stops = stopwords.words('english')
     stops.extend(["'re", "n't", "'s"])
