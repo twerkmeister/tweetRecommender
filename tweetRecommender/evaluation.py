@@ -2,6 +2,8 @@ from __future__ import division
 from tweetRecommender.mongo import mongo
 from tweetRecommender import query
 
+import sys
+
 def gold_standard(uri):
     return mongo.coll("sample_tweets").find({"full_urls": uri})
 
@@ -24,15 +26,16 @@ def evaluate_webpage(uri):
     if len(reference) > 0:
         recall = found / len(reference)
 
-    print uri + ":"
-    print len(reference), "relevant tweets", "-", found, "found tweets"
-    print (precision, recall), "(precision, recall)"
-    print "\n"
+    sys.stdout.write(uri + ":" + "\n")
+    sys.stdout.write(str(len(reference)) + "relevant tweets -" + str(found) + "found tweets\n")
+    sys.stdout.write("(%.2f,%.2f)" % (precision, recall))
+    sys.stdout.write("(precision, recall)\n")
+    sys.stdout.flush()
 
     return (precision, recall)
 
 def get_testset():
-    return mongo.coll("sample_webpages_test").find().limit(50)
+    return mongo.coll("sample_webpages_test").find(timeout=False)
 
 def main():
     testset = get_testset()
@@ -56,7 +59,6 @@ def main():
     print "Max recall:", result[0][1]
 
 if __name__ == '__main__':
-    import sys
     if len(sys.argv) > 1:
         print evaluate_webpage(sys.argv[1])
     else:
