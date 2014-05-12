@@ -7,7 +7,7 @@ from inspect import getargspec
 import operator
 
 from tweetRecommender.mongo import mongo
-
+from tweetRecommender.tweettokenization import tokenize_tweets as tokenize
 
 #XXX maybe use config values?
 GATHER_MODULE = 'terms'
@@ -29,17 +29,18 @@ def query(uri, gather_func, score_func, tweets_coll, webpages_coll):
         webpage = webpage,
         tweets = tweets_coll,
         webpages = webpages_coll,
-    ))
+    ))    
     if tweets is None:
         raise ValueError(
             "gathering step did not yield result collection; missing return?")
-
+                
     ranking = [(call_asmuch(score_func, dict(
             tweet = tweet,
             url = uri,
             webpage = webpage,
             tweets = tweets_coll,
             webpages = webpages_coll,
+            tokenized_webpage = tokenize(webpage['content'.encode('utf-8')])
         )), tweet) for tweet in tweets]
 
     ranking.sort(key=operator.itemgetter(0), reverse=True)
@@ -77,7 +78,7 @@ def main(args=None):
     tweets_coll = mongo.db[args.tweets]
     webpages_coll = mongo.db[args.webpages]
 
-    try:
+    try:                
         tweets = query(args.url,
                 gather_func, score_func, tweets_coll, webpages_coll)
     except Exception, e:
@@ -90,7 +91,7 @@ def main(args=None):
         if args.show_score:
             print("[%.3f] " % (score,), end='')
         print(u"@%s: %s" %
-                (tweet['user']['screen_name'], tweet['text']))
+                (tweet['user']['screen_name'], tweet['text'].encode("utf-8")))
     return 0
 
 
