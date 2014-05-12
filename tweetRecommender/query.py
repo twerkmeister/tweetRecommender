@@ -19,7 +19,7 @@ WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
 
 
 def query(uri, gather_func, score_func, tweets_coll, webpages_coll):
-    webpage = webpages_coll.find_one(dict(url=uri))
+    webpage = webpages_coll.find_one(dict(url=uri))    
     print("Looking up", uri)
     if not webpage:
         #XXX webpage not found?  put it into the pipeline
@@ -33,14 +33,15 @@ def query(uri, gather_func, score_func, tweets_coll, webpages_coll):
     if tweets is None:
         raise ValueError(
             "gathering step did not yield result collection; missing return?")
-                
+    
+    tokenized_webpage = tokenize(webpage['content'].encode('utf-8'))
     ranking = [(call_asmuch(score_func, dict(
             tweet = tweet,
             url = uri,
             webpage = webpage,
             tweets = tweets_coll,
             webpages = webpages_coll,
-            tokenized_webpage = tokenize(webpage['content'.encode('utf-8')])
+            tokenized_webpage = tokenized_webpage
         )), tweet) for tweet in tweets]
 
     ranking.sort(key=operator.itemgetter(0), reverse=True)
