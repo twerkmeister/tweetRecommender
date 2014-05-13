@@ -6,3 +6,4 @@ six
 gensim
 nltk
 numpy
+functools32

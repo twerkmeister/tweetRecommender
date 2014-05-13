@@ -4,6 +4,7 @@ from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 from tweetRecommender.mongo import mongo
 from bson.objectid import ObjectId
+import functools32
 import tweetfilter
 import string
 import re
@@ -16,6 +17,7 @@ def get_stopwords():
     stops.extend(["'re", "n't", "'s"])    
     return stops  
 
+@functools32.lru_cache()
 def tokenize_tweets(text):    
     text = tweetfilter.clean_tweet(text)    
     return [ps.stem(w) for w in word_tokenize(text) if not w in get_stopwords()]    
