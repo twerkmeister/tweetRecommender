@@ -1,6 +1,6 @@
 from __future__ import division
 
-from tweetRecommender.tweettokenization import tokenize_tweets as tokenize
+from tweetRecommender.tokenize import tokenize
 
 def score(tweet, webpage):
     tweet_terms = set(tweet['terms'])
