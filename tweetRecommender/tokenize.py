@@ -14,7 +14,7 @@ def get_stopwords():
     return stops
 
 def get_terms(text):
-    return list(set(tokenize_tweets(text)))
+    return list(set(tokenize(text)))
 
 @functools32.lru_cache()
 def tokenize(text):
