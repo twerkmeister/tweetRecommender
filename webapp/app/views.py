@@ -1,10 +1,7 @@
 from app import app
 from flask import render_template, request, url_for, redirect
 
-from tweetRecommender.mongo import mongo
-from tweetRecommender.query import query as recommend
-from tweetRecommender.gather.urlmatching import gather
-from tweetRecommender.rank.follower_count import score
+from tweetRecommender.query import run as recommend
 
 @app.route("/", methods=['GET'])
 def home():
@@ -17,10 +14,7 @@ def query():
 	if request.method == 'POST':	
 		url = request.form.get('url')
 		try:
-			tweets_coll = mongo.db['sample_tweets']
-			webpages_coll = mongo.db['sample_webpages']
-			tweets = recommend(url, gather, score, tweets_coll, webpages_coll)
-			print len(tweets)
+			tweets = recommend(url, 'urlmatching', 'follower_count', 'sample_tweets', 'sample_webpages')
 			return render_template('result.html', url=url, tweets=tweets)
 		except Exception, e:
 			return render_template('result.html', url=e)
