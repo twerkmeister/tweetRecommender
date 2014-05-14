@@ -32,7 +32,7 @@ def query(uri, gather_func, score_func, tweets_coll, webpages_coll, limit=0):
         webpages = webpages_coll,
     ))
     if tweets is None:
-        raise ValueError(
+        raise TypeError(
             "gathering step did not yield result collection; missing return?")
 
     ranking = Queue.PriorityQueue(limit)
