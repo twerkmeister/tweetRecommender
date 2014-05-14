@@ -5,6 +5,7 @@ import argparse
 from importlib import import_module
 from inspect import getargspec
 import operator
+import Queue
 
 from tweetRecommender.mongo import mongo
 
@@ -18,12 +19,12 @@ TWEETS_SUBSAMPLE = 'sample_tweets'
 WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
 
 
-def query(uri, gather_func, score_func, tweets_coll, webpages_coll):
+def query(uri, gather_func, score_func, tweets_coll, webpages_coll, limit=0):
     webpage = webpages_coll.find_one(dict(url=uri))
-    print("Looking up", uri)
     if not webpage:
         #XXX webpage not found?  put it into the pipeline
         raise NotImplementedError
+
     tweets = call_asmuch(gather_func, dict(
         url = uri,
         webpage = webpage,
@@ -34,18 +35,22 @@ def query(uri, gather_func, score_func, tweets_coll, webpages_coll):
         raise ValueError(
             "gathering step did not yield result collection; missing return?")
 
-    ranking = [(call_asmuch(score_func, dict(
+    ranking = Queue.PriorityQueue(limit)
+    for tweet in tweets:
+        score = call_asmuch(score_func, dict(
             tweet = tweet,
             url = uri,
             webpage = webpage,
             tweets = tweets_coll,
             webpages = webpages_coll,
-        )), tweet) for tweet in tweets]
+        ))
+        if not ranking.full():
+            ranking.put((score, tweet))
+        elif score > ranking.queue[0][0]:
+            ranking.get()
+            ranking.put((score, tweet))
 
-    ranking.sort(key=operator.itemgetter(0), reverse=True)
-
-    return ranking
-
+    return ranking.queue
 
 def call_asmuch(fun, kwargs):
     args = getargspec(fun).args
