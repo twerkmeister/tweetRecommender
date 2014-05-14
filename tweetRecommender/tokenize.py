@@ -17,7 +17,7 @@ def get_terms(text):
     return list(set(tokenize_tweets(text)))
 
 @functools32.lru_cache()
-def tokenize_tweets(text):
+def tokenize(text):
     text = tweetfilter.clean_tweet(text)
     return [ps.stem(w) for w in word_tokenize(text)
             if not w in get_stopwords()]
