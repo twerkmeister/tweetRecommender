@@ -1,6 +1,8 @@
 from __future__ import division
 from tweetRecommender.mongo import mongo
-from tweetRecommender import query
+from tweetRecommender.query import query
+from tweetRecommender.gather.terms import gather
+from tweetRecommender.rank.text_overlap import score
 
 import sys
 
@@ -9,7 +11,7 @@ def gold_standard(uri):
 
 def evaluate_webpage(uri):
     reference = [tweet["_id"] for tweet in gold_standard(uri)]
-    result = query.query(uri)
+    result = query(uri, gather, score, mongo.db["sample_tweets"], mongo.db["sample_webpages_test"])
 
     found = 0
     combined_score = 0

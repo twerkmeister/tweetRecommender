@@ -29,12 +29,14 @@ def get_model(dictionary, corpus):
     tfidf = models.TfidfModel(corpus)
     corpus_tfidf = tfidf[corpus]
 
-    model = models.LdaMallet("/home/christian/mallet-2.0.7/bin/mallet", corpus=corpus, id2word=dictionary, num_topics=200)
+    model = models.LdaMallet("/home/christian/mallet-2.0.7/bin/mallet", corpus=corpus, id2word=dictionary, num_topics=100)
+    model.save("tmp/news_mallet_model.model")
     return model
 
 def create_model_lda(dictionary, corpus):
-    model = models.LdaModel(corpus = corpus, num_topics = 200, id2word = dictionary)
+    model = models.LdaModel(corpus = corpus, num_topics = 100, id2word = dictionary)
     model.save("tmp/news_lda_model.model")
+    return model
 
 def create_dictionary(path, overwrite=False):
     if os.path.isfile(path) and not overwrite:
@@ -82,4 +84,4 @@ if __name__ == '__main__':
     dictionary = create_dictionary(dict_path)
     corpus = create_corpus(corpus_path)
 
-    model = get_model(dictionary, corpus)
+    model = create_model_lda(dictionary, corpus)
