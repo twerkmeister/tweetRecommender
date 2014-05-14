@@ -3,4 +3,10 @@
 {% block content %}
 <h3>Relevant Tweets:</h3>
 <p>{{ url }}</p>
+{% if tweets %}
+<h4>Tweets:</h4>
+{% for tweet in tweets %}
+<p>{{ tweet[1]['text'] }}</p>
+{% endfor %}
+{% endif %}
 {% endblock %}
