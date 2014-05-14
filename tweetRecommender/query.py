@@ -34,6 +34,8 @@ def query(uri, gather_func, score_func, tweets_coll, webpages_coll, limit=0):
     if tweets is None:
         raise TypeError(
             "gathering step did not yield result collection; missing return?")
+    elif not tweets:
+        return []  # exit early
 
     ranking = Queue.PriorityQueue(limit)
     for tweet in tweets:
