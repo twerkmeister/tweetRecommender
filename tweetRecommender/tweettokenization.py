@@ -17,6 +17,9 @@ def get_stopwords():
     stops.extend(["'re", "n't", "'s"])    
     return stops  
 
+def get_terms(text):
+    return list(set(tokenize_tweets(text)))
+
 @functools32.lru_cache()
 def tokenize_tweets(text):    
     text = tweetfilter.clean_tweet(text)    
