@@ -32,9 +32,13 @@ def get_model(dictionary, corpus):
     model = models.LdaMallet("/home/christian/mallet-2.0.7/bin/mallet", corpus=corpus, id2word=dictionary, num_topics=200)
     return model
 
+def create_model_lda(dictionary, corpus):
+    model = models.LdaModel(corpus = corpus, num_topics = 200, id2word = dictionary)
+    model.save("tmp/news_lda_model.model")
+
 def create_dictionary(path, overwrite=False):
     if os.path.isfile(path) and not overwrite:
-        return corpora.Dictionary.load(dict_path)
+        return corpora.Dictionary.load(path)
 
     stops = stopwords.words('english')
     stops.extend(["'re", "n't", "'s"])
