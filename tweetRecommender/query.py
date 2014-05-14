@@ -8,6 +8,7 @@ import operator
 import Queue
 
 from tweetRecommender.mongo import mongo
+from tweetRecommender.util import call_asmuch, set_vars
 
 
 #XXX maybe use config values?
@@ -54,59 +55,26 @@ def query(uri, gather_func, score_func, tweets_coll, webpages_coll, limit=0):
 
     return ranking.queue
 
-def call_asmuch(fun, kwargs):
-    args = getargspec(fun).args
-    filtered_kwargs = dict((key, value) for (key, value)
-            in kwargs.items() if key in args)
-    return fun(**filtered_kwargs)
+
+def run(url, gather_comp, rank_comp, tweets_ref, webpages_ref, limit=0):
+    """Wrapper upon `query` which handles textual references to the gather/rank
+    components and the tweets/webpages collection.
+
+    """
+    gather_mod = import_module('tweetRecommender.gather.' + gather_comp)
+    gather_func = getattr(gather_mod, 'gather')
+    score_mod = import_module('tweetRecommender.rank.' + rank_comp)
+    score_func = getattr(score_mod, 'score')
+
+    tweets_coll = mongo.db[tweets_ref]
+    webpages_coll = mongo.db[webpages_ref]
+
+    return query(url,
+                 gather_func, score_func, tweets_coll, webpages_coll, limit)
 
 
 def main(args=None):
-    parser = make_parser()
-    try:
-        args = parser.parse_args(args=args)
-    except argparse.ArgumentError:
-        parser.print_help()
-        return 1
-    try:
-        gather_mod = import_module('tweetRecommender.gather.' + args.gather)
-        gather_func = getattr(gather_mod, 'gather')
-        score_mod = import_module('tweetRecommender.rank.' + args.rank)
-        score_func = getattr(score_mod, 'score')
-    except ImportError, e:
-        #XXX log
-        print("Error:", e)
-        return 2
-    except AttributeError, e:
-        print("Error:", e)
-        return 3
-
-    tweets_coll = mongo.db[args.tweets]
-    webpages_coll = mongo.db[args.webpages]
-
-    try:
-        tweets = query(args.url,
-                gather_func, score_func, tweets_coll, webpages_coll)
-    except Exception, e:
-        #XXX log
-        import traceback; traceback.print_exc()
-        print("Error:", e)
-        return 4
-
-    for score, tweet in tweets[:args.limit]:
-        if args.show_score:
-            print("[%.3f] " % (score,), end='')
-        print(u"@%s: %s" %
-                (tweet['user']['screen_name'], tweet['text']))
-    return 0
-
-
-class set_sample_vars(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string):
-        namespace.tweets = TWEETS_SUBSAMPLE
-        namespace.webpages = WEBPAGES_SUBSAMPLE
-
-def make_parser():
+    """Command-line interface."""
     parser = argparse.ArgumentParser(
         description = 'Find relevant tweets for an URL.',
     )
@@ -123,7 +91,8 @@ def make_parser():
     parser.add_argument('--webpages', metavar='COLLECTION',
             default=WEBPAGES_COLLECTION,
             help="MongoDB collection containing news articles")
-    parser.add_argument('--sample', action=set_sample_vars, nargs=0,
+    parser.add_argument('--sample', nargs=0, action=set_vars(
+            tweets = TWEETS_SUBSAMPLE, webpages = WEBPAGES_SUBSAMPLE),
             help="same as --tweets=%s --webpages=%s" %
             (TWEETS_SUBSAMPLE, WEBPAGES_SUBSAMPLE))
     parser.add_argument('--top', dest='limit', metavar='k', type=int,
@@ -131,8 +100,25 @@ def make_parser():
     parser.add_argument('--show-score', action='store_true',
             help="show scores alongside tweets")
 
-    return parser
-
+    try:
+        args = parser.parse_args(args=args)
+    except argparse.ArgumentError:
+        parser.print_help()
+        return 1
+    try:
+        tweets = run(url=args.url, limit=args.limit,
+            gather_comp=args.gather, rank_comp=args.rank,
+            tweets_ref=args.tweets, webpages_ref=args.webpages)
+    except Exception, e:
+        import traceback
+        traceback.print_exc()
+        return 2
+    for score, tweet in tweets:
+        if args.show_score:
+            print("[%.3f] " % (score,), end='')
+        print(u"@%s: %s" %
+                (tweet['user']['screen_name'], tweet['text']))
+    return 0
 
 if __name__ == '__main__':
     import sys
