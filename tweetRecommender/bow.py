@@ -1,4 +1,5 @@
 from tweetRecommender.mongo import mongo
+from tweetRecommender.config import config
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
@@ -6,6 +7,8 @@ from gensim import corpora, models, similarities
 import string
 import logging
 import os.path
+
+MALLET_PATH = "/home/christian/mallet-2.0.7/bin/mallet"
 
 class MongoCorpus(object):
     def __init__(self, dictionary):
@@ -18,18 +21,18 @@ class MongoCorpus(object):
 ps = PorterStemmer()
 
 def subset():
-    return mongo.db.sample_webpages.find()
+    return mongo.db.sample_webpages_training.find()
 
 def tokenize(doc):
     return [ps.stem(w) 
             for s in sent_tokenize(doc["content"].encode("utf-8").lower()) 
             for w in word_tokenize(s)]
 
-def get_model(dictionary, corpus):
-    tfidf = models.TfidfModel(corpus)
-    corpus_tfidf = tfidf[corpus]
+def create_model_mallet(dictionary, corpus, path, overwrite=False):
+    if os.path.isfile(path) and not overwrite:
+        return models.LdaMallet.load(path)
 
-    model = models.LdaMallet("/home/christian/mallet-2.0.7/bin/mallet", corpus=corpus, id2word=dictionary, num_topics=100)
+    model = models.LdaMallet(MALLET_PATH, corpus=corpus, id2word=dictionary, num_topics=100)
     model.save("tmp/news_mallet_model.model")
     return model
 
@@ -78,10 +81,11 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', 
                         level=logging.INFO)
 
-    dict_path = "tmp/mongocorpus.dict"
-    corpus_path = "tmp/corpus.mm"
+    dict_path = config["lda"]["dict_path"]
+    corpus_path = config["lda"]["corpus_path"]
+    model_path = config["lda"]["model_path"]
 
     dictionary = create_dictionary(dict_path)
     corpus = create_corpus(corpus_path)
 
-    model = create_model_lda(dictionary, corpus)
+    model = create_model_mallet(dictionary, corpus, model_path)
