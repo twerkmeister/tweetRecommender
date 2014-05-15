@@ -57,6 +57,7 @@ def query(uri, gather_func, score_funcs, tweets_coll, webpages_coll, limit=0):
             ranking.get()
             ranking.put((score, tweet))
 
+    ranking.queue.sort(reverse=True)
     return ranking.queue
 
 def load_component(package, module, component):
