@@ -12,15 +12,19 @@ from tweetRecommender.util import call_asmuch, set_vars
 
 
 #XXX maybe use config values?
+GATHER_PACKAGE = 'tweetRecommender.gather'
 GATHER_MODULE = 'terms'
+GATHER_METHOD = 'gather'
+SCORE_PACKAGE = 'tweetRecommender.rank'
 SCORE_MODULE = 'text_overlap'
+SCORE_METHOD = 'score'
 TWEETS_COLLECTION = 'tweets'
 WEBPAGES_COLLECTION = 'webpages'
 TWEETS_SUBSAMPLE = 'sample_tweets'
 WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
 
 
-def query(uri, gather_func, score_func, tweets_coll, webpages_coll, limit=0):
+def query(uri, gather_func, score_funcs, tweets_coll, webpages_coll, limit=0):
     webpage = webpages_coll.find_one(dict(url=uri))
     if not webpage:
         #XXX webpage not found?  put it into the pipeline
@@ -40,13 +44,13 @@ def query(uri, gather_func, score_func, tweets_coll, webpages_coll, limit=0):
 
     ranking = Queue.PriorityQueue(limit)
     for tweet in tweets:
-        score = call_asmuch(score_func, dict(
+        score = sum(call_asmuch(score_func, dict(
             tweet = tweet,
             url = uri,
             webpage = webpage,
             tweets = tweets_coll,
             webpages = webpages_coll,
-        ))
+        )) for score_func in score_funcs)
         if not ranking.full():
             ranking.put((score, tweet))
         elif score > ranking.queue[0][0]:
@@ -55,22 +59,25 @@ def query(uri, gather_func, score_func, tweets_coll, webpages_coll, limit=0):
 
     return ranking.queue
 
+def load_component(package, module, component):
+    mod = import_module(package + '.' + module)
+    return getattr(mod, component)
 
-def run(url, gather_comp, rank_comp, tweets_ref, webpages_ref, limit=0):
+
+def run(url, gatherer, rankers, tweets_ref, webpages_ref, limit=0):
     """Wrapper upon `query` which handles textual references to the gather/rank
     components and the tweets/webpages collection.
 
     """
-    gather_mod = import_module('tweetRecommender.gather.' + gather_comp)
-    gather_func = getattr(gather_mod, 'gather')
-    score_mod = import_module('tweetRecommender.rank.' + rank_comp)
-    score_func = getattr(score_mod, 'score')
+    gather_func = load_component(GATHER_PACKAGE, gatherer, GATHER_METHOD)
+    score_funcs = [load_component(SCORE_PACKAGE, ranker, SCORE_METHOD)
+                   for ranker in rankers]
 
     tweets_coll = mongo.db[tweets_ref]
     webpages_coll = mongo.db[webpages_ref]
 
     return query(url,
-                 gather_func, score_func, tweets_coll, webpages_coll, limit)
+                 gather_func, score_funcs, tweets_coll, webpages_coll, limit)
 
 
 def main(args=None):
@@ -83,7 +90,7 @@ def main(args=None):
             help="News article.")
     parser.add_argument('--gather', default=GATHER_MODULE, metavar='COMPONENT',
             help="tweetRecommender/gather/*.py, default: %(default)s")
-    parser.add_argument('--rank', default=SCORE_MODULE, metavar='COMPONENT',
+    parser.add_argument('--rank', action='append', metavar='COMPONENT',
             help="tweetRecommender/rank/*.py, default: %(default)s")
     parser.add_argument('--tweets', metavar='COLLECTION',
             default=TWEETS_COLLECTION,
@@ -105,9 +112,12 @@ def main(args=None):
     except argparse.ArgumentError:
         parser.print_help()
         return 1
+    if not args.rank:               # cannot set as default=
+        args.rank = [SCORE_MODULE]  # because action=append
+
     try:
         tweets = run(url=args.url, limit=args.limit,
-            gather_comp=args.gather, rank_comp=args.rank,
+            gatherer=args.gather, rankers=args.rank,
             tweets_ref=args.tweets, webpages_ref=args.webpages)
     except Exception, e:
         import traceback
