@@ -1,6 +1,5 @@
 from __future__ import division
 from tweetRecommender.mongo import mongo
-from tweetRecommender.query import query
 from tweetRecommender.gather.terms import gather
 from tweetRecommender.rank.text_overlap import score
 
@@ -34,6 +33,26 @@ def evaluate_webpage(uri):
     sys.stdout.write("(precision, recall)\n")
     sys.stdout.flush()
 
+    return (precision, recall)
+
+def evaluate_query(uri, tweets_results):
+    reference = [tweet["_id"] for tweet in gold_standard(uri)]    
+    found = 0 
+    combined_score = 0    
+    precision = 0.0 
+    recall = 0.0
+    for score, tweet in tweets_results:
+        if tweet["_id"] in reference:
+            found += 1
+            combined_score += score    
+    if len(tweets_results) > 0:
+        precision = found / len(tweets_results)    
+    if len(reference) > 0:
+        recall = found / len(reference)
+    
+    print("\nevaluation result: \n")
+    print(str(len(reference)) + " relevant tweets - " + str(found) + " found tweets\n")    
+    print("(precision : %.2f, recall: %.2f)\n" % (precision, recall))    
     return (precision, recall)
 
 def get_testset():

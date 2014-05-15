@@ -9,6 +9,7 @@ import Queue
 
 from tweetRecommender.mongo import mongo
 from tweetRecommender.util import call_asmuch, set_vars
+from tweetRecommender.evaluation import evaluate_query
 
 
 #XXX maybe use config values?
@@ -41,22 +42,21 @@ def query(uri, gather_func, score_funcs, tweets_coll, webpages_coll, limit=0):
             "gathering step did not yield result collection; missing return?")
     elif not tweets:
         return []  # exit early
-
-    ranking = Queue.PriorityQueue(limit)
-    for tweet in tweets:
+    
+    ranking = Queue.PriorityQueue(limit)    
+    for tweet in tweets:                      
         score = sum(call_asmuch(score_func, dict(
             tweet = tweet,
             url = uri,
             webpage = webpage,
             tweets = tweets_coll,
             webpages = webpages_coll,
-        )) for score_func in score_funcs)
+        )) for score_func in score_funcs)        
         if not ranking.full():
             ranking.put((score, tweet))
-        elif score > ranking.queue[0][0]:
+        elif score > ranking.queue[0][0]:            
             ranking.get()
-            ranking.put((score, tweet))
-
+            ranking.put((score, tweet))    
     return ranking.queue
 
 def load_component(package, module, component):
@@ -75,7 +75,7 @@ def run(url, gatherer, rankers, tweets_ref, webpages_ref, limit=0):
 
     tweets_coll = mongo.db[tweets_ref]
     webpages_coll = mongo.db[webpages_ref]
-
+    
     return query(url,
                  gather_func, score_funcs, tweets_coll, webpages_coll, limit)
 
@@ -105,7 +105,9 @@ def main(args=None):
     parser.add_argument('--top', dest='limit', metavar='k', type=int,
             help="maximum number of results")
     parser.add_argument('--show-score', action='store_true',
-            help="show scores alongside tweets")
+            help="show scores alongside tweets")    
+    parser.add_argument('--evaluate', action='store_true',
+            help="compares result with gold standard")    
 
     try:
         args = parser.parse_args(args=args)
@@ -127,7 +129,9 @@ def main(args=None):
         if args.show_score:
             print("[%.3f] " % (score,), end='')
         print(u"@%s: %s" %
-                (tweet['user']['screen_name'], tweet['text']))
+                (tweet['user']['screen_name'], tweet['text'].encode("ascii", "ignore")))
+    if args.evaluate:
+        evaluate_query(args.url, tweets)
     return 0
 
 if __name__ == '__main__':
