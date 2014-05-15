@@ -25,14 +25,14 @@ def subset():
 
 def tokenize(doc):
     return [ps.stem(w) 
-            for s in sent_tokenize(doc["content"].lower()) 
+            for s in sent_tokenize(doc["content"].encode("ascii", "ignore").lower()) 
             for w in word_tokenize(s)]
 
 def create_model_mallet(dictionary, corpus, path, overwrite=False):
     if os.path.isfile(path) and not overwrite:
         return models.LdaMallet.load(path)
 
-    model = models.LdaMallet(MALLET_PATH, corpus=corpus, id2word=dictionary, num_topics=100)
+    model = models.LdaMallet(MALLET_PATH, corpus=corpus, id2word=dictionary, num_topics=100, iterations=10)
     model.save("tmp/news_mallet_model.model")
     return model
 

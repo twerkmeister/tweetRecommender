@@ -11,7 +11,7 @@ def gold_standard(uri):
 
 def evaluate_webpage(uri):
     reference = [tweet["_id"] for tweet in gold_standard(uri)]
-    result = query(uri, gather, [score], mongo.db["sample_tweets"], mongo.db["sample_webpages_test"])
+    result = query(uri, gather, [score], mongo.db["sample_tweets"], mongo.db["sample_webpages_test"], 10)
 
     found = 0
     combined_score = 0
