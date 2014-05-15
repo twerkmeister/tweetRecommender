@@ -25,7 +25,7 @@ def tokenize(text):
 def handle(tweet, bulk):
     text = tweet["text"]
     tweet_id = tweet["_id"]
-    tokens = list(set(tokenize_tweets(text.encode("utf-8"))))
+    tokens = list(set(tokenize(text.encode("utf-8"))))
     bulk.find({'_id': tweet_id}).update({'$set': {'terms': tokens}})
 
 if __name__ == '__main__':

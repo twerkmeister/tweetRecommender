@@ -1,12 +1,14 @@
+
 from tweetRecommender.mongo import mongo
 from tweetRecommender.config import config
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
-from gensim import corpora, models, similarities
+from gensim import corpora, models
 import string
 import logging
 import os.path
+import functools32
 
 MALLET_PATH = "/home/christian/mallet-2.0.7/bin/mallet"
 
@@ -19,6 +21,14 @@ class MongoCorpus(object):
             yield dictionary.doc2bow(tokenize(doc))
 
 ps = PorterStemmer()
+
+@functools32.lru_cache() 
+def get_lda():
+    return models.LdaModel.load(config["lda"]["model_path"])
+    
+@functools32.lru_cache() 
+def get_dictionary(): #redundancy for scoring    
+    return create_dictionary(config["lda"]["dict_path"])
 
 def subset():
     return mongo.db.sample_webpages_training.find()
