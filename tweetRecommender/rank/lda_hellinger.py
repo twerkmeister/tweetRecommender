@@ -1,11 +1,12 @@
 from __future__ import division
 
-import tweetRecommender.bow as bow
+import tweetRecommender.ldamodel as ldamodel
+from tweetRecommender.config import config
 from gensim import models, matutils 
 import numpy as np
 
 lda = models.LdaModel.load('tmp/news_lda_model.model')
-dictionary = bow.create_dictionary("tmp/mongocorpus.dict")
+dictionary = ldamodel.create_dictionary(config["lda"]["dict_path"])
 
 #http://stackoverflow.com/questions/22433884/python-gensim-how-to-calculate-document-similarity-using-the-lda-model
 #similarity using hellinger distance better than cosine similarity for lda model    
