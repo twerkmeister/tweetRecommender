@@ -25,7 +25,7 @@ def subset():
 
 def tokenize(doc):
     return [ps.stem(w) 
-            for s in sent_tokenize(doc["content"].encode("utf-8").lower()) 
+            for s in sent_tokenize(doc["content"].lower()) 
             for w in word_tokenize(s)]
 
 def create_model_mallet(dictionary, corpus, path, overwrite=False):

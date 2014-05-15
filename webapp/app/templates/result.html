@@ -1,12 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h3>Relevant Tweets:</h3>
-<p>{{ url }}</p>
-{% if tweets %}
-<h4>Tweets:</h4>
-{% for tweet in tweets %}
-<p>{{ tweet[1]['text'] }}</p>
-{% endfor %}
-{% endif %}
+  <h3>Result</h3>
+  <p><a href="{{ url }}" target="_blank">{{ url }}</a></p>
+  {% if tweets %}
+    <h4>Tweets:</h4>
+    {% for tweet in tweets %}
+      {% include "tweet.html" %}
+      {% if not loop.last %}
+        <hr />
+	  {% endif %}
+    {% endfor %}
+  {% endif %}
 {% endblock %}

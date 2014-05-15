@@ -1,0 +1,8 @@
+<div class="tweet {{ loop.cycle('tweet-odd', 'tweet-even') }}">
+  <div class="tweet-header">
+    <span class="tweet-author">{{ tweet[1]['user']['screen_name'] }}</span>
+    <span class="tweet-date">{{ tweet[1]['created_at'] }}</span>
+    <span class="badge badge-info">{{ tweet[0] }}</span>
+  </div>
+  <p class="tweet-body">{{ tweet[1]['text'] }}</p>
+</div>
