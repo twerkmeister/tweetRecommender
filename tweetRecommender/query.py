@@ -3,8 +3,6 @@
 from __future__ import print_function
 import argparse
 from importlib import import_module
-from inspect import getargspec
-import operator
 import Queue
 
 from tweetRecommender.mongo import mongo
@@ -51,12 +49,13 @@ def query(uri, gather_func, score_funcs, tweets_coll, webpages_coll, limit=0):
             webpage = webpage,
             tweets = tweets_coll,
             webpages = webpages_coll,
-        )) for score_func in score_funcs)        
+        )) for score_func in score_funcs)               
         if not ranking.full():
             ranking.put((score, tweet))
         elif score > ranking.queue[0][0]:            
             ranking.get()
             ranking.put((score, tweet))    
+    ranking.queue.sort(reverse=True)
     return ranking.queue
 
 def load_component(package, module, component):

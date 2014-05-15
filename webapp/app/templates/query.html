@@ -1,10 +1,31 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h3>Find Tweets for Article:</h3>
+<h3>Find Tweets for Article</h3>
 
-<form method="post">
-    <p>URL: <input name="url" type="text" /></p>
-    <p><input type="submit" value="Search" /></p>
+<form method="post" class="form-search">
+	<div style="margin-bottom: 10px;">
+	  <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#demo">Advanced Options</button>	 
+		<div id="demo" class="collapse out"> 
+			<table>
+				<tr>
+					<td><label>Limit</label></td>
+					<td><input type="text" name="limit" class="input-small" value="5" /></td>
+				</tr>
+				<tr>
+					<td><label>Gather method</label></td>
+					<td><input type="text" name="gather" class="input-medium" value="urlmatching" /></td>
+				</tr>
+				<tr>
+					<td><label>Ranking method</label></td>
+					<td><input type="text" name="ranking" class="input-medium" value="follower_count" /></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+
+  <input type="text" placeholder="Insert url..." class="input-large search-query" name="url" />
+  <button type="submit" class="btn btn-primary" name="action" value="search">Search</button>
+  <button type="submit" class="btn" name="action" value="random">Random article</button>
 </form>
 {% endblock %}
