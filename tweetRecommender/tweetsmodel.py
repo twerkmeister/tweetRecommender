@@ -32,15 +32,11 @@ stops.extend(string.punctuation)
 
 
 def subset():
-    return mongo.db.tweets_per_hashtag.find().sort("count", -1).limit(10000)    
+    return mongo.db.tweets_per_hashtag.find().sort("count", -1).limit(200)    
 
 def get_doc(hashtag):    
-        doc = ""                
-        print hashtag
-        global count
-        count = count + 1
-        print count
-        for tweet in mongo.db.tweets.find({"hashtags" : { "$in" : [hashtag] }}).limit(1000):
+        doc = ""                        
+        for tweet in mongo.db.tweets.find({"hashtags" : { "$in" : [hashtag] }}).limit(200):
             doc = doc + " " + tweetfilter.clean_tweet(tweet["text"].encode("utf-8"))        
         return doc                
 
@@ -70,7 +66,7 @@ if __name__ == '__main__':
     tfidf = models.TfidfModel(corpus)
     corpus_tfidf = tfidf[corpus]
 
-    model = models.ldamodel.LdaModel(corpus_tfidf, id2word=dictionary, num_topics=100, iterations=10000)
+    model = models.ldamodel.LdaModel(corpus_tfidf, id2word=dictionary, num_topics=10, iterations=10000)
     model.save("c:\\tmp\\model.lda")
     print model
     print model.show_topics()
