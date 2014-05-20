@@ -8,3 +8,4 @@ nltk
 numpy
 functools32
 flask
+kales
