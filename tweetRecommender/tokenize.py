@@ -3,6 +3,7 @@ from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 from tweetRecommender.mongo import mongo
 from tweetRecommender import tweetfilter
+from tweetRecommender.stopwords import stopwords as stopwords_extension
 import functools32
 
 ps = PorterStemmer()
@@ -11,6 +12,7 @@ ps = PorterStemmer()
 def get_stopwords():
     stops = stopwords.words('english')
     stops.extend(["'re", "n't", "'s"])
+    stops.extend(stopwords_extension)
     return stops
 
 def get_terms(text):

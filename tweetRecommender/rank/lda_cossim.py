@@ -9,7 +9,7 @@ from gensim import matutils
 def score(tweet, webpage):        
     lda = ldamodel.get_lda()    
     dictionary = ldamodel.get_dictionary()    
-    tweet_vec = lda[dictionary.doc2bow(tweet['terms'])]    
+    tweet_vec = lda[dictionary.doc2bow(tweet['terms'])]  
     news_vec = lda[dictionary.doc2bow(tokenize(webpage["content"]))]    
-    score = matutils.cossim(news_vec, tweet_vec)                    
+    score = matutils.cossim(news_vec, tweet_vec)                
     return score

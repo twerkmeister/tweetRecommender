@@ -1,7 +1,6 @@
 from __future__ import division
 from tweetRecommender.mongo import mongo
-from tweetRecommender.gather.terms import gather
-from tweetRecommender.rank.lda_cossim import score
+from tweetRecommender.query import run as query
 
 import sys
 
@@ -10,7 +9,7 @@ def gold_standard(uri):
 
 def evaluate_webpage(uri):
     reference = [tweet["_id"] for tweet in gold_standard(uri)]
-    result = query(uri, gather, [score], mongo.db["sample_tweets"], mongo.db["sample_webpages_test"], 10)
+    result = query(uri, "terms", ["lda_cossim"], "sample_tweets", "sample_webpages_test", 10)
 
     found = 0
     combined_score = 0

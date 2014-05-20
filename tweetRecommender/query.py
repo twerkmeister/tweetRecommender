@@ -7,7 +7,6 @@ import Queue
 
 from tweetRecommender.mongo import mongo
 from tweetRecommender.util import call_asmuch, set_vars
-from tweetRecommender.evaluation import evaluate_query
 
 
 #XXX maybe use config values?
