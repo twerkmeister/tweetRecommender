@@ -1,12 +1,14 @@
+
 from tweetRecommender.mongo import mongo
 from tweetRecommender.config import config
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
-from gensim import corpora, models, similarities
+from gensim import corpora, models
 import string
 import logging
 import os.path
+import functools32
 
 MALLET_PATH = "/home/christian/mallet-2.0.7/bin/mallet"
 
@@ -20,19 +22,27 @@ class MongoCorpus(object):
 
 ps = PorterStemmer()
 
+@functools32.lru_cache() 
+def get_lda():
+    return models.LdaModel.load(config["lda"]["model_path"])
+    
+@functools32.lru_cache() 
+def get_dictionary(): #redundancy for scoring    
+    return create_dictionary(config["lda"]["dict_path"])
+
 def subset():
     return mongo.db.sample_webpages_training.find()
 
 def tokenize(doc):
     return [ps.stem(w) 
-            for s in sent_tokenize(doc["content"].lower()) 
+            for s in sent_tokenize(doc["content"].encode("ascii", "ignore").lower()) 
             for w in word_tokenize(s)]
 
 def create_model_mallet(dictionary, corpus, path, overwrite=False):
     if os.path.isfile(path) and not overwrite:
         return models.LdaMallet.load(path)
 
-    model = models.LdaMallet(MALLET_PATH, corpus=corpus, id2word=dictionary, num_topics=100)
+    model = models.LdaMallet(MALLET_PATH, corpus=corpus, id2word=dictionary, num_topics=100, iterations=10)
     model.save("tmp/news_mallet_model.model")
     return model
 
