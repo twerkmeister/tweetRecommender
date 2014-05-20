@@ -7,7 +7,7 @@ import Queue
 
 from tweetRecommender.mongo import mongo
 from tweetRecommender.util import call_asmuch, set_vars
-
+#from tweetRecommender.evaluation import evaluate_query
 
 #XXX maybe use config values?
 GATHER_PACKAGE = 'tweetRecommender.gather'
@@ -108,8 +108,8 @@ def main(args=None):
             help="maximum number of results")
     parser.add_argument('--show-score', action='store_true',
             help="show scores alongside tweets")    
-    parser.add_argument('--evaluate', action='store_true',
-            help="compares result with gold standard")    
+    #parser.add_argument('--evaluate', action='store_true',
+            #help="compares result with gold standard")    
 
     try:
         args = parser.parse_args(args=args)
@@ -132,8 +132,8 @@ def main(args=None):
             print("[%.3f] " % (score,), end='')
         print(u"@%s: %s" %
                 (tweet['user']['screen_name'], tweet['text'].encode("ascii", "ignore")))
-    if args.evaluate:
-        evaluate_query(args.url, tweets)
+    #if args.evaluate:
+        #evaluate_query(args.url, tweets)
     return 0
 
 if __name__ == '__main__':
