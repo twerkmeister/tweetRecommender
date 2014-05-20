@@ -41,8 +41,11 @@ def query(uri, gather_func, score_funcs, tweets_coll, webpages_coll, limit=0):
     elif not tweets:
         return []  # exit early
     
+    num_tweets = 0
+
     ranking = Queue.PriorityQueue(limit)    
-    for tweet in tweets:                      
+    for tweet in tweets:
+        num_tweets += 1                      
         score = sum(call_asmuch(score_func, dict(
             tweet = tweet,
             url = uri,
@@ -56,6 +59,7 @@ def query(uri, gather_func, score_funcs, tweets_coll, webpages_coll, limit=0):
             ranking.get()
             ranking.put((score, tweet))    
     ranking.queue.sort(reverse=True)
+    print("retrieved %d tweets" % num_tweets)
     return ranking.queue
 
 def load_component(package, module, component):
