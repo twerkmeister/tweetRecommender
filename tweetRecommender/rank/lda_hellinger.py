@@ -16,4 +16,5 @@ def score(tweet, webpage):
     dense1 = matutils.sparse2full(tweet_vec, lda.num_topics)
     dense2 = matutils.sparse2full(news_vec, lda.num_topics)
     sim = np.sqrt(0.5 * ((np.sqrt(dense1) - np.sqrt(dense2))**2).sum())
+    print 1-sim
     return 1-sim 
