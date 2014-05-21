@@ -140,9 +140,10 @@ def main(args=None):
         import traceback
         traceback.print_exc()
         return 2
+    digits = len(str(tweets[0][0]))
     for score, tweet in tweets:
         if args.show_score:
-            print("[%.3f] " % (score,), end='')
+            print("[%0*d] " % (digits, score,), end='')
         print(u"@%s: %s" %
                 (tweet['user']['screen_name'], tweet['text']))
     return 0
