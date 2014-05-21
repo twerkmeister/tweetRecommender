@@ -2,12 +2,11 @@
 
 from __future__ import print_function
 import argparse
-from importlib import import_module
 import operator
 import Queue
 
 from tweetRecommender.mongo import mongo
-from tweetRecommender.util import call_asmuch, set_vars
+from tweetRecommender.util import call_asmuch, set_vars, load_component
 
 
 #XXX maybe use config values?
