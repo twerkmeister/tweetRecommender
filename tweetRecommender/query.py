@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 import argparse
+import logging
 import operator
 import Queue
 
@@ -15,6 +16,7 @@ GATHER_METHOD = 'gather'
 SCORE_PACKAGE = 'tweetRecommender.rank'
 SCORE_MODULES = ['text_overlap']
 SCORE_METHOD = 'score'
+SCORE_INFO_FIELDS = 'FIELDS'
 FILTER_PACKAGE = 'tweetRecommender.filter'
 FILTER_MODULES = ['expected_time']
 FILTER_METHOD = 'filter'
@@ -148,7 +150,7 @@ def main(args=None):
             help="%s/*.py, defaults: %s" %
             (FILTER_PACKAGE.replace('.', '/'), ', '.join(FILTER_MODULES)))
     parser.add_argument('--no-filter', action='store_const', dest='filters',
-            const='null', help="disable all filters")
+            const=['null'], help="disable all filters")
     parser.add_argument('--tweets', metavar='COLLECTION',
             default=TWEETS_COLLECTION,
             help="MongoDB collection containing tweets (default: %(default)s)")
