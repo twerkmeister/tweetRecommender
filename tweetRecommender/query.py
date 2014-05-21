@@ -9,20 +9,25 @@ from tweetRecommender.mongo import mongo
 from tweetRecommender.util import call_asmuch, set_vars, load_component
 
 
-#XXX maybe use config values?
 GATHER_PACKAGE = 'tweetRecommender.gather'
 GATHER_MODULE = 'terms'
 GATHER_METHOD = 'gather'
 SCORE_PACKAGE = 'tweetRecommender.rank'
-SCORE_MODULE = 'text_overlap'
+SCORE_MODULES = ['text_overlap']
 SCORE_METHOD = 'score'
+FILTER_PACKAGE = 'tweetRecommender.filter'
+FILTER_MODULES = ['expected_time']
+FILTER_METHOD = 'filter'
+
+#XXX maybe use config values?
 TWEETS_COLLECTION = 'tweets'
 WEBPAGES_COLLECTION = 'webpages'
 TWEETS_SUBSAMPLE = 'sample_tweets'
 WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
 
 
-def query(uri, gather_func, score_funcs, tweets_coll, webpages_coll, limit=0):
+def query(uri, gather_func, score_funcs, filter_funcs,
+          tweets_coll, webpages_coll, limit=0):
     webpage = webpages_coll.find_one(dict(url=uri))
     if not webpage:
         #XXX webpage not found?  put it into the pipeline
@@ -76,7 +81,7 @@ def query(uri, gather_func, score_funcs, tweets_coll, webpages_coll, limit=0):
             key=operator.itemgetter(0), reverse=True)[:limit]
 
 
-def run(url, gatherer, rankers, tweets_ref, webpages_ref, limit=0):
+def run(url, gatherer, rankers, filters, tweets_ref, webpages_ref, limit=0):
     """Wrapper upon `query` which handles textual references to the gather/rank
     components and the tweets/webpages collection.
 
@@ -86,12 +91,14 @@ def run(url, gatherer, rankers, tweets_ref, webpages_ref, limit=0):
         rankers = [rankers]  # backwards compat
     score_funcs = [load_component(SCORE_PACKAGE, ranker, SCORE_METHOD)
                    for ranker in rankers]
+    filter_funcs = [load_component(FILTER_PACKAGE, filter_, FILTER_METHOD)
+                    for filter_ in filters]
 
     tweets_coll = mongo.db[tweets_ref]
     webpages_coll = mongo.db[webpages_ref]
 
-    return query(url,
-                 gather_func, score_funcs, tweets_coll, webpages_coll, limit)
+    return query(url, gather_func, score_funcs, filter_funcs,
+                 tweets_coll, webpages_coll, limit)
 
 
 def main(args=None):
@@ -106,8 +113,14 @@ def main(args=None):
             help="%s/*.py, default: %%(default)s" %
             (GATHER_PACKAGE.replace('.', '/'),))
     parser.add_argument('--rank', action='append', metavar='COMPONENT',
-            help="%s/*.py, default: %%(default)s" %
-            (SCORE_PACKAGE.replace('.', '/'),))
+            help="%s/*.py, defaults: %s" %
+            (SCORE_PACKAGE.replace('.', '/'), ', '.join(SCORE_MODULES)))
+    parser.add_argument('--filter', action='append', dest='filters',
+            metavar='COMPONENT',
+            help="%s/*.py, defaults: %s" %
+            (FILTER_PACKAGE.replace('.', '/'), ', '.join(FILTER_MODULES)))
+    parser.add_argument('--no-filter', action='store_const', dest='filters',
+            const='null', help="disable all filters")
     parser.add_argument('--tweets', metavar='COLLECTION',
             default=TWEETS_COLLECTION,
             help="MongoDB collection containing tweets (default: %(default)s)")
@@ -129,12 +142,16 @@ def main(args=None):
         print("Error:", error)
         parser.print_help()
         return 1
-    if not args.rank:               # cannot set as default=
-        args.rank = [SCORE_MODULE]  # because action=append
+
+    # cannot set as default= because action=append adds to defaults
+    if not args.rank:
+        args.rank = SCORE_MODULES
+    if not args.filters:
+        args.filters = FILTER_MODULES
 
     try:
         tweets = run(url=args.url, limit=args.limit,
-            gatherer=args.gather, rankers=args.rank,
+            gatherer=args.gather, rankers=args.rank, filters=args.filters,
             tweets_ref=args.tweets, webpages_ref=args.webpages)
     except Exception, e:
         import traceback
