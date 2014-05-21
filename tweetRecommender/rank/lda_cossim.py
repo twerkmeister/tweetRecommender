@@ -11,7 +11,7 @@ def score(tweet, webpage):
     lda = ldamodel.get_lda()    
     dictionary = ldamodel.get_dictionary()    
     tweet_vec = lda[dictionary.doc2bow(tweet['terms'])]  
-    news_vec = lda[dictionary.doc2bow(tokenize(webpage["content"]))]    
+    news_vec = cached_news_vector(webpage["content"].encode("utf-8"))
     score = matutils.cossim(news_vec, tweet_vec)                
     return score
 
