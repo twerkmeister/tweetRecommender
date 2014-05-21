@@ -11,3 +11,4 @@ def score(tweet, webpage):
   days_difference = SECONDS_TO_DAYS_FACTOR * ((tweet["created_at"] - webpage["created_at"]).total_seconds())
   return gaussian_density(days_difference)
 
+FIELDS = ['created_at']

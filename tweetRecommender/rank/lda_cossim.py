@@ -13,3 +13,5 @@ def score(tweet, webpage):
     news_vec = lda[dictionary.doc2bow(tokenize(webpage["content"]))]    
     score = matutils.cossim(news_vec, tweet_vec)                
     return score
+
+FIELDS = ['terms']

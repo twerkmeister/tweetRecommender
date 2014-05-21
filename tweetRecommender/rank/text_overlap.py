@@ -8,3 +8,5 @@ def score(tweet, webpage):
     intersection = news_terms.intersection(tweet_terms)
     score = len(intersection) / len(tweet_terms)
     return score
+
+FIELDS = ['terms']

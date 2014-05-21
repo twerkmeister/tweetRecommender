@@ -1,2 +1,2 @@
 def gather(url, tweets, webpages):
-    return tweets.find({"full_urls": url})
+    return {"full_urls": url}
