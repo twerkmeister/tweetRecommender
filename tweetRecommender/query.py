@@ -62,7 +62,7 @@ def query(uri, gather_func, score_funcs, tweets_coll, webpages_coll, limit=0):
                 ranking.put((score, tweet))
 
     # Borda count
-    window = max(rankings, key=len)
+    window = max(ranking.qsize() for ranking in rankings)
     overall = {}
     for ranking in rankings:
         for pos, (score, tweet) in enumerate(ranking.queue):
