@@ -11,4 +11,4 @@ def gather(webpage):
     entity_tuples= [(entity['relevance'], entity['name'])for entity in data["entities"]]        
     for entity in sorted(entity_tuples, key=lambda entity: entity[0], reverse=True)[:num_of_entities]: #sort by relevance
         terms.extend(get_terms(entity[1]))            
-    return {'terms': {'$in': terms}})
+    return {'terms': {'$in': terms}}

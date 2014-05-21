@@ -9,7 +9,7 @@ def gold_standard(uri):
 
 def evaluate_webpage(uri):
     reference = [tweet["_id"] for tweet in gold_standard(uri)]
-    result = query(uri, "terms", ["lda_cossim"], "sample_tweets", "sample_webpages_test", 10)
+    result = query(uri, "terms_date", ["date"], "sample_tweets", "sample_webpages_test", 10)
 
     found = 0
     combined_score = 0
@@ -55,7 +55,7 @@ def evaluate_query(uri, tweets_results):
     return (precision, recall)
 
 def get_testset():
-    return mongo.coll("sample_webpages_test").find(timeout=False)
+    return mongo.coll("sample_webpages_test").find(timeout=False).limit(10)
 
 def main():
     testset = get_testset()

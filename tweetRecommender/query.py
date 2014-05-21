@@ -205,7 +205,7 @@ def main(args=None):
         if args.show_score:
             print("[%0*d] " % (digits, score,), end='')
         print(u"@%s: %s" %
-                (tweet['user']['screen_name'], tweet['text']))
+                (tweet['user']['screen_name'], tweet['text'].encode("ascii","ignore")))
     return 0
 
 if __name__ == '__main__':

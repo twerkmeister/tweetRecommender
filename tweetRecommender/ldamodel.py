@@ -1,9 +1,8 @@
 
 from tweetRecommender.mongo import mongo
 from tweetRecommender.config import config
-from nltk.tokenize import word_tokenize, sent_tokenize
-from nltk.stem.porter import PorterStemmer
-from nltk.corpus import stopwords
+from tweetRecommender.tokenize import get_terms
+
 from gensim import corpora, models
 import string
 import logging
@@ -20,8 +19,6 @@ class MongoCorpus(object):
         for doc in subset():
             yield dictionary.doc2bow(tokenize(doc))
 
-ps = PorterStemmer()
-
 @functools32.lru_cache() 
 def get_lda():
     return models.LdaModel.load(config["lda"]["model_path"])
@@ -34,15 +31,13 @@ def subset():
     return mongo.db.sample_webpages_training.find()
 
 def tokenize(doc):
-    return [ps.stem(w) 
-            for s in sent_tokenize(doc["content"].encode("ascii", "ignore").lower()) 
-            for w in word_tokenize(s)]
+    return get_terms(doc['content'].encode('utf-8'))
 
 def create_model_mallet(dictionary, corpus, path, overwrite=False):
     if os.path.isfile(path) and not overwrite:
         return models.LdaMallet.load(path)
 
-    model = models.LdaMallet(MALLET_PATH, corpus=corpus, id2word=dictionary, num_topics=100, iterations=1000)
+    model = models.LdaMallet(MALLET_PATH, corpus=corpus, id2word=dictionary, num_topics=100)
     model.save(path)
     return model
 
@@ -50,19 +45,13 @@ def create_model_lda(dictionary, corpus,  path, overwrite=False):
     if os.path.isfile(path) and not overwrite:
         return models.LdaModel.load(path)
 
-    model = models.LdaModel(corpus = corpus, num_topics = 100, id2word = dictionary)
+    model = models.LdaModel(corpus = corpus, num_topics = 100, id2word = dictionary, passes=2, iterations=200)
     model.save(path)
     return model
 
 def create_dictionary(path, overwrite=False):
     if os.path.isfile(path) and not overwrite:
         return corpora.Dictionary.load(path)
-
-    stops = stopwords.words('english')
-    stops.extend(["'re", "n't", "'s"])
-    stops.extend(string.punctuation)
-
-    minlength = 3
 
     dictionary = corpora.Dictionary(tokenize(doc) for doc in subset())
     #remove terms occur only in single document
@@ -72,12 +61,9 @@ def create_dictionary(path, overwrite=False):
     #remove terms length less than minimal length   
     less_ids = [dictionary.token2id[tokenid] for tokenid 
                                             in dictionary.token2id 
-                                            if len(tokenid) <= minlength]
-    #remove stop words
-    stop_ids = [dictionary.token2id[stopword] for stopword 
-                                            in stops 
-                                            if stopword in dictionary.token2id]
-    dictionary.filter_tokens(once_ids + less_ids + stop_ids)
+                                            if len(tokenid) <= 3]
+
+    dictionary.filter_tokens(once_ids + less_ids)
     dictionary.compactify()
     dictionary.save(path)
     return dictionary
