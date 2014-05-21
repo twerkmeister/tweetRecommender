@@ -7,7 +7,8 @@ import operator
 import Queue
 
 from tweetRecommender.mongo import mongo
-from tweetRecommender.util import call_asmuch, set_vars, load_component
+from tweetRecommender.util import call_asmuch, set_vars
+from tweetRecommender.machinery import load_component, find_components
 
 
 GATHER_PACKAGE = 'tweetRecommender.gather'
@@ -165,6 +166,7 @@ def main(args=None):
             help="maximum number of results")
     parser.add_argument('--show-score', action='store_true',
             help="show scores alongside tweets")
+    parser.add_argument('--list-components', action='store_true')
 
     try:
         args = parser.parse_args(args=args)
@@ -173,6 +175,15 @@ def main(args=None):
         parser.print_help()
         return 1
 
+    if args.list_components:
+        print("Available components:")
+        for flag, pkg in [("gather", GATHER_PACKAGE),
+                          ("filter", FILTER_PACKAGE),
+                          ("rank", SCORE_PACKAGE)]:
+            print("  --%s:" % flag)
+            for component in find_components(pkg):
+                print("\t%s" % component)
+        return 0
     # cannot set as default= because action=append adds to defaults
     if not args.rank:
         args.rank = SCORE_MODULES
@@ -194,7 +205,7 @@ def main(args=None):
         if args.show_score:
             print("[%0*d] " % (digits, score,), end='')
         print(u"@%s: %s" %
-                (tweet['user']['screen_name'], tweet['text']))
+                (tweet['user']['screen_name'], tweet['text'].encode("ascii","ignore")))
     return 0
 
 if __name__ == '__main__':
