@@ -1,5 +1,4 @@
 import argparse
-import importlib
 import inspect
 
 def call_asmuch(fun, kwargs):
@@ -15,8 +14,3 @@ def set_vars(**varz):
             for var, value in varz.items():
                 setattr(namespace, var, value)
     return SetVarsAction
-
-
-def load_component(package, module, component):
-    mod = importlib.import_module(package + '.' + module)
-    return getattr(mod, component)
