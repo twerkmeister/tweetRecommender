@@ -125,7 +125,8 @@ def main(args=None):
 
     try:
         args = parser.parse_args(args=args)
-    except argparse.ArgumentError:
+    except argparse.ArgumentError, error:
+        print("Error:", error)
         parser.print_help()
         return 1
     if not args.rank:               # cannot set as default=
