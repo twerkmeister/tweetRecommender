@@ -1,14 +1,15 @@
 from __future__ import division
 
-import tweetRecommender.bow as bow
-from gensim import models, matutils 
+import tweetRecommender.ldamodel as ldamodel
+from tweetRecommender.tokenize import tokenize  
 
-lda = models.LdaModel.load('tmp/news_lda_model.model')
-dictionary = bow.create_dictionary("tmp/mongocorpus.dict")
+from gensim import matutils
 
-#http://stackoverflow.com/questions/22433884/python-gensim-how-to-calculate-document-similarity-using-the-lda-model    
-def score(tweet, tokenized_webpage):                            
-    tweet_vec = lda[dictionary.doc2bow(tweet['terms'])]    
-    news_vec = lda[dictionary.doc2bow(tokenized_webpage)]
-    score = matutils.cossim(news_vec, tweet_vec)                   
+#http://stackoverflow.com/questions/22433884/python-gensim-how-to-calculate-document-similarity-using-the-lda-model   
+def score(tweet, webpage):        
+    lda = ldamodel.get_lda()    
+    dictionary = ldamodel.get_dictionary()    
+    tweet_vec = lda[dictionary.doc2bow(tweet['terms'])]  
+    news_vec = lda[dictionary.doc2bow(tokenize(webpage["content"]))]    
+    score = matutils.cossim(news_vec, tweet_vec)                
     return score

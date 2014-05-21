@@ -1,11 +1,16 @@
+
 from tweetRecommender.mongo import mongo
+from tweetRecommender.config import config
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
-from gensim import corpora, models, similarities
+from gensim import corpora, models
 import string
 import logging
 import os.path
+import functools32
+
+MALLET_PATH = "/home/christian/mallet-2.0.7/bin/mallet"
 
 class MongoCorpus(object):
     def __init__(self, dictionary):
@@ -17,25 +22,36 @@ class MongoCorpus(object):
 
 ps = PorterStemmer()
 
+@functools32.lru_cache() 
+def get_lda():
+    return models.LdaModel.load(config["lda"]["model_path"])
+    
+@functools32.lru_cache() 
+def get_dictionary(): #redundancy for scoring    
+    return create_dictionary(config["lda"]["dict_path"])
+
 def subset():
-    return mongo.db.sample_webpages.find()
+    return mongo.db.sample_webpages_training.find()
 
 def tokenize(doc):
     return [ps.stem(w) 
-            for s in sent_tokenize(doc["content"].encode("utf-8").lower()) 
+            for s in sent_tokenize(doc["content"].encode("ascii", "ignore").lower()) 
             for w in word_tokenize(s)]
 
-def get_model(dictionary, corpus):
-    tfidf = models.TfidfModel(corpus)
-    corpus_tfidf = tfidf[corpus]
+def create_model_mallet(dictionary, corpus, path, overwrite=False):
+    if os.path.isfile(path) and not overwrite:
+        return models.LdaMallet.load(path)
 
-    model = models.LdaMallet("/home/christian/mallet-2.0.7/bin/mallet", corpus=corpus, id2word=dictionary, num_topics=100)
-    model.save("tmp/news_mallet_model.model")
+    model = models.LdaMallet(MALLET_PATH, corpus=corpus, id2word=dictionary, num_topics=100, iterations=1000)
+    model.save(path)
     return model
 
-def create_model_lda(dictionary, corpus):
+def create_model_lda(dictionary, corpus,  path, overwrite=False):
+    if os.path.isfile(path) and not overwrite:
+        return models.LdaModel.load(path)
+
     model = models.LdaModel(corpus = corpus, num_topics = 100, id2word = dictionary)
-    model.save("tmp/news_lda_model.model")
+    model.save(path)
     return model
 
 def create_dictionary(path, overwrite=False):
@@ -68,7 +84,7 @@ def create_dictionary(path, overwrite=False):
 
 def create_corpus(path, overwrite=False):
     if os.path.isfile(path) and not overwrite:
-        return corpora.MmCorpus(corpus_path)
+        return corpora.MmCorpus(path)
 
     corpus = MongoCorpus(dictionary)
     corpora.MmCorpus.serialize(path, corpus)
@@ -78,10 +94,11 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', 
                         level=logging.INFO)
 
-    dict_path = "tmp/mongocorpus.dict"
-    corpus_path = "tmp/corpus.mm"
+    dict_path = config["lda"]["dict_path"]
+    corpus_path = config["lda"]["corpus_path"]
+    model_path = config["lda"]["model_path"]
 
     dictionary = create_dictionary(dict_path)
     corpus = create_corpus(corpus_path)
 
-    model = create_model_lda(dictionary, corpus)
+    model = create_model_lda(dictionary, corpus, model_path)
