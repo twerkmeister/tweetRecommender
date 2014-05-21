@@ -37,29 +37,43 @@ def query(uri, gather_func, score_funcs, tweets_coll, webpages_coll, limit=0):
     if tweets is None:
         raise TypeError(
             "gathering step did not yield result collection; missing return?")
-    elif not tweets:
+    count = tweets.count()  #XXX ugh!
+    if not count:
         return []  # exit early
 
-    ranking = Queue.PriorityQueue(limit)
+    nvotes = len(score_funcs)
+    #XXX is the window really correct?
+    window = (count + 1) / 2 if nvotes > 1 else limit
+    rankings = [Queue.PriorityQueue(window)
+                for _ in range(nvotes)]
     for tweet in tweets:
-        score = sum(call_asmuch(score_func, dict(
-            tweet = tweet,
-            url = uri,
-            webpage = webpage,
-            tweets = tweets_coll,
-            webpages = webpages_coll,
-        )) for score_func in score_funcs)
-        if not ranking.full():
-            ranking.put((score, tweet))
-        elif score > ranking.queue[0][0]:
-            ranking.get()
-            ranking.put((score, tweet))
+        for score_func, ranking in zip(score_funcs, rankings):
+            score = call_asmuch(score_func, dict(
+                tweet = tweet,
+                url = uri,
+                webpage = webpage,
+                tweets = tweets_coll,
+                webpages = webpages_coll,
+            ))
+            if not ranking.full():
+                ranking.put((score, tweet))
+            elif score > ranking.queue[0][0]:
+                ranking.get()
+                ranking.put((score, tweet))
 
-    return ranking.queue
+    # Borda count
+    window = max(rankings, key=len)
+    overall = {}
+    for ranking in rankings:
+        for pos, (score, tweet) in enumerate(ranking.queue):
+            key = tweet['tweet_id']  # hashable, unique
+            current = overall.get(key, [0])[0]
+            #XXX consider ties
+            overall[key] = (current + window - pos, tweet)
+        # all unranked tweets gain 0 points
 
-def load_component(package, module, component):
-    mod = import_module(package + '.' + module)
-    return getattr(mod, component)
+    return sorted(overall.values(),
+            key=operator.itemgetter(0), reverse=True)[:limit]
 
 
 def run(url, gatherer, rankers, tweets_ref, webpages_ref, limit=0):
