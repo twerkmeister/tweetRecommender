@@ -2,7 +2,6 @@ from __future__ import division
 
 from tweetRecommender.tokenize import get_terms
 
-def gather(webpage, tweets, webpages):
+def gather(webpage):
     terms = get_terms(webpage['content'].encode('utf-8'))
-    tweets = tweets.find({'terms': {'$in': terms}})
-    return tweets
+    return {'terms': {'$in': terms}}

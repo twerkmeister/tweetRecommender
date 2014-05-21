@@ -18,3 +18,5 @@ def score(tweet, webpage):
     sim = np.sqrt(0.5 * ((np.sqrt(dense1) - np.sqrt(dense2))**2).sum())
     print 1-sim
     return 1-sim 
+
+FIELDS = ['terms']
