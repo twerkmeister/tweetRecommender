@@ -1,2 +1,2 @@
-def gather(url, tweets, webpages):
+def gather(url):
     return {"full_urls": url}
