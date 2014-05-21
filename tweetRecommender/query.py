@@ -3,7 +3,6 @@
 from __future__ import print_function
 import argparse
 from importlib import import_module
-from inspect import getargspec
 import operator
 import Queue
 
