@@ -103,15 +103,17 @@ def main(args=None):
     parser.add_argument('url', metavar='URL',
             help="News article.")
     parser.add_argument('--gather', default=GATHER_MODULE, metavar='COMPONENT',
-            help="tweetRecommender/gather/*.py, default: %(default)s")
+            help="%s/*.py, default: %%(default)s" %
+            (GATHER_PACKAGE.replace('.', '/'),))
     parser.add_argument('--rank', action='append', metavar='COMPONENT',
-            help="tweetRecommender/rank/*.py, default: %(default)s")
+            help="%s/*.py, default: %%(default)s" %
+            (SCORE_PACKAGE.replace('.', '/'),))
     parser.add_argument('--tweets', metavar='COLLECTION',
             default=TWEETS_COLLECTION,
-            help="MongoDB collection containing tweets")
+            help="MongoDB collection containing tweets (default: %(default)s)")
     parser.add_argument('--webpages', metavar='COLLECTION',
             default=WEBPAGES_COLLECTION,
-            help="MongoDB collection containing news articles")
+            help="MongoDB collection containing news articles (default: %(default)s)")
     parser.add_argument('--sample', nargs=0, action=set_vars(
             tweets = TWEETS_SUBSAMPLE, webpages = WEBPAGES_SUBSAMPLE),
             help="same as --tweets=%s --webpages=%s" %
