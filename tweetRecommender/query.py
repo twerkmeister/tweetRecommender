@@ -68,6 +68,8 @@ def run(url, gatherer, rankers, tweets_ref, webpages_ref, limit=0):
 
     """
     gather_func = load_component(GATHER_PACKAGE, gatherer, GATHER_METHOD)
+    if not hasattr(rankers, '__iter__'):
+        rankers = [rankers]  # backwards compat
     score_funcs = [load_component(SCORE_PACKAGE, ranker, SCORE_METHOD)
                    for ranker in rankers]
 
