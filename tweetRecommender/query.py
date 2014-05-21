@@ -146,11 +146,11 @@ def main(args=None):
             help="%s/*.py, defaults: %s" %
             (SCORE_PACKAGE.replace('.', '/'), ', '.join(SCORE_MODULES)))
     parser.add_argument('--filter', action='append', dest='filters',
-            metavar='COMPONENT',
+            metavar='COMPONENT', default=[],
             help="%s/*.py, defaults: %s" %
             (FILTER_PACKAGE.replace('.', '/'), ', '.join(FILTER_MODULES)))
-    parser.add_argument('--no-filter', action='store_const', dest='filters',
-            const=['null'], help="disable all filters")
+    parser.add_argument('--no-filter', action='store_true',
+            help="disable all filters")
     parser.add_argument('--tweets', metavar='COLLECTION',
             default=TWEETS_COLLECTION,
             help="MongoDB collection containing tweets (default: %(default)s)")
@@ -176,7 +176,7 @@ def main(args=None):
     # cannot set as default= because action=append adds to defaults
     if not args.rank:
         args.rank = SCORE_MODULES
-    if not args.filters:
+    if not args.filters and not args.no_filter:
         args.filters = FILTER_MODULES
 
     logging.basicConfig(level=logging.INFO)
