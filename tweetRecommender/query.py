@@ -70,6 +70,7 @@ def query(uri, gather_func, score_funcs, filter_funcs, projection,
     logging.info("Counting tweets..")
     count = tweets.count()  #XXX ugh!
     if not count:
+        logging.info("No tweets retrieved; abort.")
         return []  # exit early
     logging.info("Counted %d tweets.", count)
 
