@@ -4,6 +4,21 @@ from six.moves.urllib.parse import urlsplit
 
 from tweetRecommender.config import config
 from tweetRecommender.mongo import mongo
+from tweetRecommender.tokenize import tokenize  
+
+def tokenize_webpages(collection_ref):
+    import sys
+
+    coll = mongo.coll(collection_ref)
+
+    count = 0
+    docs = coll.find({'terms': {'$exists': False}})
+    for doc in docs:
+        sys.stdout.write("\r" + str(count))
+        sys.stdout.flush()
+        count += 1
+        terms = tokenize(doc["content"].encode("utf-8"))
+        coll.update({'url': doc["url"]}, {'$set': {'terms': terms}})
 
 
 def handle(uri):
@@ -15,9 +30,11 @@ def handle(uri):
     except RuntimeError:
         return
     cleaned = boilerpipe(content)
-    db.webpages.insert(dict(
+    terms = tokenize(cleaned)
+    mongo.db.webpages.insert(dict(
         url = uri,
         content = cleaned,
+        terms = terms
     ))
 
 def enqueue(uri):
@@ -50,3 +67,6 @@ def boilerpipe(html):
     EXTRACTOR="DefaultExtractor"
     extractor = Extractor(extractor=EXTRACTOR, html=html)
     return extractor.getText()
+
+if __name__ == '__main__':
+    tokenize_webpages("sample_webpages_test")
