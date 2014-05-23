@@ -216,7 +216,7 @@ def main(args=None):
         traceback.print_exc()
         return 2
     digits = len(str(int(tweets[0][0])))
-    score_format = ".2f" if len(args.rank) > 1 else "0%sd" % digits
+    score_format = ".2f" if len(args.rank) == 1 else "0%sd" % digits
     score_format = ("%%%s," if args.raw else "[%%%s] ") % score_format
     tweet_format = (u"%(id)s" if args.raw else u"@%(user)s: %(text)s")
     for score, tweet in tweets:
