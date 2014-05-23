@@ -104,19 +104,20 @@ def query(uri, gather_func, score_funcs, filter_funcs, projection,
     # Borda count
     if nvotes == 1:
         logging.info("Skipped voting;  monarchy.")
-        return [(score, tweets_index[tweet]) for score, tweet in ranking.queue]
-
-    logging.info("Voting..")
-    overall = {}
-    for ranking in rankings:
-        for pos, (score, tweet) in enumerate(ranking.queue):
-            current = overall.get(tweet, 0)
-            overall[tweet] = current + count - pos
+        overall = ((tweet, score) for score, tweet in ranking.queue)
+    else:
+        logging.info("Voting..")
+        overall = {}
+        for ranking in rankings:
+            for pos, (score, tweet) in enumerate(ranking.queue):
+                current = overall.get(tweet, 0)
+                overall[tweet] = current + count - pos
+        overall = overall.items()
 
     logging.info("Sorting..")
     #XXX consider ties
     return [(score, tweets_index[tweet]) for tweet, score in
-            sorted(overall.items(),
+            sorted(overall,
                    key=operator.itemgetter(1), reverse=True)[:limit]]
 
 
