@@ -85,6 +85,7 @@ def query(uri, gather_func, score_funcs, filter_funcs, projection,
         tweets_index[key] = dict(
                 user = tweet['user']['screen_name'],
                 text = tweet['text'],
+                id = key,
         )
         for score_func, ranking in zip(score_funcs, rankings):
             score = call_asmuch(score_func, dict(
@@ -175,7 +176,10 @@ def main(args=None):
             help="maximum number of results")
     parser.add_argument('--show-score', action='store_true',
             help="show scores alongside tweets")
-    parser.add_argument('--list-components', action='store_true')
+    parser.add_argument('--raw', action='store_true',
+            help="generate machine-readable output")
+    parser.add_argument('--list-components', action='store_true',
+            help="list all available components")
 
     try:
         args = parser.parse_args(args=args)
@@ -185,7 +189,8 @@ def main(args=None):
         return 1
 
     if args.list_components:
-        print("Available components:")
+        if not args.raw:
+            print("Available components:")
         for flag, pkg in [("gather", GATHER_PACKAGE),
                           ("filter", FILTER_PACKAGE),
                           ("rank", SCORE_PACKAGE)]:
@@ -211,12 +216,13 @@ def main(args=None):
         return 2
     digits = len(str(int(tweets[0][0])))
     score_format = ".2f" if len(args.rank) > 1 else "0%sd" % digits
-    score_format = "[%%%s] " % score_format
+    score_format = ("%%%s," if args.raw else "[%%%s] ") % score_format
+    tweet_format = (u"%(id)s" if args.raw else u"@%(user)s: %(text)s")
     for score, tweet in tweets:
+        tweet['text'] = tweet['text'].encode('ascii', 'ignore')
         if args.show_score:
             print(score_format % (score,), end='')
-        print(u"@%s: %s" %
-                (tweet['user'], tweet['text'].encode("ascii","ignore")))
+        print(tweet_format % tweet)
     return 0
 
 if __name__ == '__main__':
