@@ -75,12 +75,17 @@ def query(uri, gather_func, score_funcs, filter_funcs, projection,
     logging.info("Counted %d tweets.", count)
 
     nvotes = len(score_funcs)
-    #XXX is the window really correct?
-    window = (count + 1) / 2 if nvotes > 1 else limit
-    rankings = [Queue.PriorityQueue(window)
+    rankings = [Queue.PriorityQueue(count)
                 for _ in range(nvotes)]
-    logging.info("Scoring..")
+    logging.info("Scoring by %s..", ", ".join("%s.%s" % (s.__module__, s)
+        for s in score_funcs))
+    tweets_index = {}
     for tweet in tweets:
+        key = tweet['tweet_id']
+        tweets_index[key] = dict(
+                user = tweet['user']['screen_name'],
+                text = tweet['text'],
+        )
         for score_func, ranking in zip(score_funcs, rankings):
             score = call_asmuch(score_func, dict(
                 tweet = tweet,
@@ -90,26 +95,28 @@ def query(uri, gather_func, score_funcs, filter_funcs, projection,
                 webpages = webpages_coll,
             ))
             if not ranking.full():
-                ranking.put((score, tweet))
+                ranking.put((score, key))
             elif score > ranking.queue[0][0]:
                 ranking.get()
-                ranking.put((score, tweet))
+                ranking.put((score, key))
 
     # Borda count
+    if nvotes == 1:
+        logging.info("Skipped voting;  monarchy.")
+        return [(score, tweets_index[tweet]) for score, tweet in ranking.queue]
+
     logging.info("Voting..")
-    window = max(ranking.qsize() for ranking in rankings)
     overall = {}
     for ranking in rankings:
         for pos, (score, tweet) in enumerate(ranking.queue):
-            key = tweet['tweet_id']  # hashable, unique
-            current = overall.get(key, [0])[0]
-            #XXX consider ties
-            overall[key] = (current + window - pos, tweet)
-        # all unranked tweets gain 0 points
+            current = overall.get(tweet, 0)
+            overall[tweet] = current + count - pos
 
     logging.info("Sorting..")
-    return sorted(overall.values(),
-            key=operator.itemgetter(0), reverse=True)[:limit]
+    #XXX consider ties
+    return [(score, tweets_index[tweet]) for tweet, score in
+            sorted(overall.items(),
+                   key=operator.itemgetter(1), reverse=True)[:limit]]
 
 
 def run(url, gatherer, rankers, filters, tweets_ref, webpages_ref, limit=0):
@@ -202,12 +209,14 @@ def main(args=None):
         import traceback
         traceback.print_exc()
         return 2
-    digits = len(str(tweets[0][0]))
+    digits = len(str(int(tweets[0][0])))
+    score_format = ".2f" if len(args.rank) > 1 else "0%sd" % digits
+    score_format = "[%%%s] " % score_format
     for score, tweet in tweets:
         if args.show_score:
-            print("[%0*d] " % (digits, score,), end='')
+            print(score_format % (score,), end='')
         print(u"@%s: %s" %
-                (tweet['user']['screen_name'], tweet['text'].encode("ascii","ignore")))
+                (tweet['user'], tweet['text'].encode("ascii","ignore")))
     return 0
 
 if __name__ == '__main__':
