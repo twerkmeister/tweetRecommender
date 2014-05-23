@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 import argparse
+import itertools
 import logging
 import operator
 import Queue
@@ -120,8 +121,8 @@ def run(url, gatherer, rankers, filters, tweets_ref, webpages_ref, limit=0):
         rankers = [rankers]  # backwards compat
     score_funcs = [load_component(SCORE_PACKAGE, ranker, SCORE_METHOD)
                    for ranker in rankers]
-    fields = set(*[load_component(SCORE_PACKAGE, ranker, SCORE_INFO_FIELDS)
-                      for ranker in rankers])
+    fields = set(itertools.chain(*[load_component(SCORE_PACKAGE, ranker, SCORE_INFO_FIELDS)
+                      for ranker in rankers]))
     filter_funcs = [load_component(FILTER_PACKAGE, filter_, FILTER_METHOD)
                     for filter_ in filters]
 
