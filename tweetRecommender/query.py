@@ -7,9 +7,9 @@ import logging
 import operator
 import Queue
 
+from tweetRecommender.machinery import load_component, find_components
 from tweetRecommender.mongo import mongo
 from tweetRecommender.util import set_vars
-from tweetRecommender.machinery import load_component, find_components
 
 
 GATHER_PACKAGE = 'tweetRecommender.gather'
