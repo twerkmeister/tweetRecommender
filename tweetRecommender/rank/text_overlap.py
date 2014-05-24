@@ -9,4 +9,4 @@ def score(tweet, webpage):
     score = len(intersection) / len(tweet_terms)
     return score
 
-FIELDS = ['terms']
+score.fields = ['terms']

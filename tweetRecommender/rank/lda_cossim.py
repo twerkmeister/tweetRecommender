@@ -19,4 +19,4 @@ def score(tweet, webpage):
 def cached_news_vector(text):      
     return ldamodel.get_lda()[ldamodel.get_dictionary().doc2bow(tokenize(text))]  
 
-FIELDS = ['terms']
+score.fields = ['terms']

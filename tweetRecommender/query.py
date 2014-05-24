@@ -18,7 +18,7 @@ GATHER_METHOD = 'gather'
 SCORE_PACKAGE = 'tweetRecommender.rank'
 SCORE_MODULES = ['text_overlap']
 SCORE_METHOD = 'score'
-SCORE_INFO_FIELDS = 'FIELDS'
+SCORE_INFO_FIELDS = 'fields'
 FILTER_PACKAGE = 'tweetRecommender.filter'
 FILTER_MODULES = ['expected_time']
 FILTER_METHOD = 'filter'
@@ -32,7 +32,7 @@ WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
 LOG = logging.getLogger('tweetRecommender.query')
 
 
-def query(uri, gather_func, score_funcs, filter_funcs, projection,
+def query(uri, gather_func, score_funcs, filter_funcs,
           tweets_coll, webpages_coll, limit=0):
     LOG.info("Querying for %s..", uri)
     webpage = webpages_coll.find_one(dict(url=uri))
@@ -40,10 +40,10 @@ def query(uri, gather_func, score_funcs, filter_funcs, projection,
         #XXX webpage not found?  put it into the pipeline
         raise NotImplementedError
 
-    tweets = gather(webpage, gather_func, filter_funcs, projection, tweets_coll)
+    tweets = gather(webpage, gather_func, filter_funcs, tweets_coll)
     return rank(tweets, score_funcs, webpage, limit)
 
-def gather(webpage, gather_func, filter_funcs, projection, coll):
+def gather(webpage, gather_func, filter_funcs, coll):
     LOG.info("Retrieving criteria from %s.%s..", gather_func.__module__, gather_func)
     find_criteria = gather_func(webpage)
 
@@ -58,6 +58,9 @@ def gather(webpage, gather_func, filter_funcs, projection, coll):
         LOG.info("New criteria: %s", new_criteria)
         find_criteria.update(new_criteria)
 
+    projection = set()
+    for ranker in rankers:
+        projection.update(getattr(ranker, SCORE_INFO_FIELDS))
     LOG.info("Retrieving tweets with fields %s..",
                  ", ".join("`%s'"%p for p in projection))
 
@@ -126,15 +129,13 @@ def run(url, gatherer, rankers, filters, tweets_ref, webpages_ref, limit=0):
         rankers = [rankers]  # backwards compat
     score_funcs = [load_component(SCORE_PACKAGE, ranker, SCORE_METHOD)
                    for ranker in rankers]
-    fields = set(itertools.chain(*[load_component(SCORE_PACKAGE, ranker, SCORE_INFO_FIELDS)
-                      for ranker in rankers]))
     filter_funcs = [load_component(FILTER_PACKAGE, filter_, FILTER_METHOD)
                     for filter_ in filters]
 
     tweets_coll = mongo.db[tweets_ref]
     webpages_coll = mongo.db[webpages_ref]
 
-    return query(url, gather_func, score_funcs, filter_funcs, fields,
+    return query(url, gather_func, score_funcs, filter_funcs,
                  tweets_coll, webpages_coll, limit)
 
 

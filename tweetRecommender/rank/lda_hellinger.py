@@ -19,4 +19,4 @@ def score(tweet, webpage):
     print 1-sim
     return 1-sim 
 
-FIELDS = ['terms']
+score.fields = ['terms']
