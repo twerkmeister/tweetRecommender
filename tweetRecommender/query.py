@@ -132,8 +132,8 @@ def run(url, gatherer, rankers, filters, tweets_ref, webpages_ref, limit=0):
     filter_funcs = [load_component(FILTER_PACKAGE, filter_, FILTER_METHOD)
                     for filter_ in filters]
 
-    tweets_coll = mongo.db[tweets_ref]
-    webpages_coll = mongo.db[webpages_ref]
+    tweets_coll = mongo.coll(tweets_ref)
+    webpages_coll = mongo.coll(webpages_ref)
 
     return query(url, gather_func, score_funcs, filter_funcs,
                  tweets_coll, webpages_coll, limit)
