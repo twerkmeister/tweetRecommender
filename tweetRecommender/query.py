@@ -8,7 +8,7 @@ import operator
 import Queue
 
 from tweetRecommender.mongo import mongo
-from tweetRecommender.util import call_asmuch, set_vars
+from tweetRecommender.util import set_vars
 from tweetRecommender.machinery import load_component, find_components
 
 
@@ -29,55 +29,57 @@ WEBPAGES_COLLECTION = 'webpages'
 TWEETS_SUBSAMPLE = 'sample_tweets'
 WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
 
+LOG = logging.getLogger('tweetRecommender.query')
+
 
 def query(uri, gather_func, score_funcs, filter_funcs, projection,
           tweets_coll, webpages_coll, limit=0):
-    logging.info("Querying for %s..", uri)
+    LOG.info("Querying for %s..", uri)
     webpage = webpages_coll.find_one(dict(url=uri))
     if not webpage:
         #XXX webpage not found?  put it into the pipeline
         raise NotImplementedError
 
-    logging.info("Retrieving criteria from %s.%s..", gather_func.__module__, gather_func)
-    find_criteria = call_asmuch(gather_func, dict(
-        url = uri,
-        webpage = webpage,
-        tweets = tweets_coll,
-        webpages = webpages_coll,
-    ))
+    tweets = gather(webpage, gather_func, filter_funcs, projection, tweets_coll)
+    return rank(tweets, score_funcs, webpage, limit)
+
+def gather(webpage, gather_func, filter_funcs, projection, coll):
+    LOG.info("Retrieving criteria from %s.%s..", gather_func.__module__, gather_func)
+    find_criteria = gather_func(webpage)
 
     if find_criteria is None:
         raise TypeError(
             "gathering step did not yield result criteria; missing return?")
-    logging.info("Criteria: %s", find_criteria)
+    LOG.info("Criteria: %s", find_criteria)
 
     for filter_func in filter_funcs:
-        logging.info("Filtering query with %s.%s..", filter_func.__module__, filter_func)
-        new_criteria = call_asmuch(filter_func, dict(
-            url = uri,
-            webpage = webpage,
-        ))
-        logging.info("New criteria: %s", new_criteria)
+        LOG.info("Filtering query with %s.%s..", filter_func.__module__, filter_func)
+        new_criteria = filter_func(webpage)
+        LOG.info("New criteria: %s", new_criteria)
         find_criteria.update(new_criteria)
 
-    custom_fields = ", ".join("`%s'"%p for p in projection)
+    LOG.info("Retrieving tweets with fields %s..",
+                 ", ".join("`%s'"%p for p in projection))
+
     projection.add('tweet_id')
     projection.add('user.screen_name')
     projection.add('text')
-    logging.info("Retrieving tweets with fields %s..", custom_fields)
-    tweets = tweets_coll.find(find_criteria, dict.fromkeys(projection, 1))
 
-    logging.info("Counting tweets..")
+    tweets = coll.find(find_criteria, dict.fromkeys(projection, 1))
+    return tweets
+
+def rank(tweets, score_funcs, webpage, limit):
+    LOG.debug("Counting tweets..")
     count = tweets.count()  #XXX ugh!
     if not count:
-        logging.info("No tweets retrieved; abort.")
+        LOG.warning("No tweets retrieved; abort.")
         return []  # exit early
-    logging.info("Counted %d tweets.", count)
+    LOG.info("Counted %d tweets.", count)
 
     nvotes = len(score_funcs)
     rankings = [Queue.PriorityQueue(count)
                 for _ in range(nvotes)]
-    logging.info("Scoring by %s..", ", ".join("%s.%s" % (s.__module__, s)
+    LOG.info("Scoring by %s..", ", ".join("%s.%s" % (s.__module__, s)
         for s in score_funcs))
     tweets_index = {}
     for tweet in tweets:
@@ -88,13 +90,7 @@ def query(uri, gather_func, score_funcs, filter_funcs, projection,
                 id = key,
         )
         for score_func, ranking in zip(score_funcs, rankings):
-            score = call_asmuch(score_func, dict(
-                tweet = tweet,
-                url = uri,
-                webpage = webpage,
-                tweets = tweets_coll,
-                webpages = webpages_coll,
-            ))
+            score = score_func(tweet, webpage)
             if not ranking.full():
                 ranking.put((score, key))
             elif score > ranking.queue[0][0]:
@@ -102,10 +98,10 @@ def query(uri, gather_func, score_funcs, filter_funcs, projection,
                 ranking.put((score, key))
 
     if nvotes == 1:
-        logging.info("Skipped voting;  monarchy.")
+        LOG.info("Skipped voting;  monarchy.")
         overall = ((tweet, score) for score, tweet in ranking.queue)
     else:
-        logging.info("Voting..")
+        LOG.debug("Voting..")
         # Borda count
         overall = {}
         for ranking in rankings:
@@ -114,7 +110,7 @@ def query(uri, gather_func, score_funcs, filter_funcs, projection,
                 overall[tweet] = current + count - pos
         overall = overall.items()
 
-    logging.info("Sorting..")
+    LOG.debug("Sorting..")
     #XXX consider ties
     return [(score, tweets_index[tweet]) for tweet, score in
             sorted(overall, key=operator.itemgetter(1), reverse=True)[:limit]]
@@ -204,7 +200,10 @@ def main(args=None):
     if not args.filters and not args.no_filter:
         args.filters = FILTER_MODULES
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(
+        level = logging.INFO,
+        format = "[%(levelname)s] %(message)s",
+    )
 
     try:
         tweets = run(url=args.url, limit=args.limit,
