@@ -32,18 +32,21 @@ WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
 LOG = logging.getLogger('tweetRecommender.query')
 
 
-def query(uri, gather_func, score_funcs, filter_funcs,
-          tweets_coll, webpages_coll, limit=0):
+def query(uri, gather_func, score_funcs, filter_funcs, visible_fields,
+          tweets_coll, webpages_coll, limit):
     LOG.info("Querying for %s..", uri)
     webpage = webpages_coll.find_one(dict(url=uri))
     if not webpage:
         #XXX webpage not found?  put it into the pipeline
         raise NotImplementedError
 
-    tweets = gather(webpage, gather_func, filter_funcs, tweets_coll)
+    required_fields = _required_fields(rankers).union(visible_fields)
+
+    tweets = gather(webpage, gather_func, filter_funcs,
+                    required_fields, tweets_coll)
     return rank(tweets, score_funcs, webpage, limit)
 
-def gather(webpage, gather_func, filter_funcs, coll):
+def gather(webpage, gather_func, filter_funcs, required_fields, coll):
     LOG.info("Retrieving criteria from %s.%s..", gather_func.__module__, gather_func)
     find_criteria = gather_func(webpage)
 
@@ -58,17 +61,12 @@ def gather(webpage, gather_func, filter_funcs, coll):
         LOG.info("New criteria: %s", new_criteria)
         find_criteria.update(new_criteria)
 
-    projection = set()
-    for ranker in rankers:
-        projection.update(getattr(ranker, SCORE_INFO_FIELDS))
     LOG.info("Retrieving tweets with fields %s..",
-                 ", ".join("`%s'"%p for p in projection))
+                 ", ".join("`%s'"%p for p in required_fields))
 
-    projection.add('tweet_id')
-    projection.add('user.screen_name')
-    projection.add('text')
+    required_fields.add('tweet_id')
 
-    tweets = coll.find(find_criteria, dict.fromkeys(projection, 1))
+    tweets = coll.find(find_criteria, dict.fromkeys(required_fields, 1))
     return tweets
 
 def rank(tweets, score_funcs, webpage, limit):
@@ -117,6 +115,12 @@ def rank(tweets, score_funcs, webpage, limit):
     #XXX consider ties
     return [(score, tweets_index[tweet]) for tweet, score in
             sorted(overall, key=operator.itemgetter(1), reverse=True)[:limit]]
+
+def _required_fields(funcs):
+    fields = set()
+    for func in funcs:
+        fields.update(getattr(func, SCORE_INFO_FIELDS))
+    return fields
 
 
 def run(url, gatherer, rankers, filters, tweets_ref, webpages_ref, limit=0):
@@ -209,6 +213,7 @@ def main(args=None):
     try:
         tweets = run(url=args.url, limit=args.limit,
             gatherer=args.gather, rankers=args.rank, filters=args.filters,
+            visible_fields=['user.screen_name', 'text'],
             tweets_ref=args.tweets, webpages_ref=args.webpages)
     except Exception, e:
         import traceback
