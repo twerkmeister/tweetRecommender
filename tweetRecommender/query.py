@@ -125,7 +125,7 @@ def _required_fields(funcs):
     return fields
 
 
-def run(url, gatherer, rankers, filters, tweets_ref, webpages_ref, limit=0):
+def run(url, gatherer, rankers, filters, tweets_ref, webpages_ref, limit):
     """Wrapper upon `query` which handles textual references to the gather/rank
     components and the tweets/webpages collection.
 
