@@ -47,7 +47,8 @@ def query(uri, gather_func, score_funcs, filter_funcs, visible_fields,
     return rank(tweets, score_funcs, webpage, limit)
 
 def gather(webpage, gather_func, filter_funcs, required_fields, coll):
-    LOG.info("Retrieving criteria from %s.%s..", gather_func.__module__, gather_func)
+    LOG.info("Retrieving criteria from %s.%s..",
+            gather_func.__module__, gather_func)
     find_criteria = gather_func(webpage)
 
     if find_criteria is None:
@@ -56,7 +57,8 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
     LOG.info("Criteria: %s", find_criteria)
 
     for filter_func in filter_funcs:
-        LOG.info("Filtering query with %s.%s..", filter_func.__module__, filter_func)
+        LOG.info("Filtering query with %s.%s..",
+                filter_func.__module__, filter_func)
         new_criteria = filter_func(webpage)
         LOG.info("New criteria: %s", new_criteria)
         find_criteria.update(new_criteria)
@@ -80,8 +82,8 @@ def rank(tweets, score_funcs, webpage, limit):
     nvotes = len(score_funcs)
     rankings = [Queue.PriorityQueue(count)
                 for _ in range(nvotes)]
-    LOG.info("Scoring by %s..", ", ".join("%s.%s" % (s.__module__, s)
-        for s in score_funcs))
+    LOG.info("Scoring by %s..",
+            ", ".join("%s.%s" % (s.__module__, s) for s in score_funcs))
     tweets_index = {}
     for tweet in tweets:
         key = tweet['tweet_id']
