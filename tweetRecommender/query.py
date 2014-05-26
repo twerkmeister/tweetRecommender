@@ -11,6 +11,8 @@ from tweetRecommender.machinery import load_component, find_components
 from tweetRecommender.mongo import mongo
 from tweetRecommender.util import set_vars
 
+from six import string_types
+
 
 GATHER_PACKAGE = 'tweetRecommender.gather'
 GATHER_MODULE = 'terms'
@@ -130,7 +132,7 @@ def run(url, gatherer, rankers, filters, tweets_ref, webpages_ref, limit):
 
     """
     gather_func = load_component(GATHER_PACKAGE, gatherer, GATHER_METHOD)
-    if not hasattr(rankers, '__iter__'):
+    if isinstance(rankers, string_types):
         rankers = [rankers]  # backwards compat
     score_funcs = [load_component(SCORE_PACKAGE, ranker, SCORE_METHOD)
                    for ranker in rankers]
