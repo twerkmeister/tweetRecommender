@@ -41,6 +41,7 @@ def query(uri, gather_func, score_funcs, filter_funcs, visible_fields,
         raise NotImplementedError
 
     required_fields = _required_fields(rankers).union(visible_fields)
+    required_fields.add('tweet_id')
 
     tweets = gather(webpage, gather_func, filter_funcs,
                     required_fields, tweets_coll)
@@ -65,8 +66,6 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
 
     LOG.info("Retrieving tweets with fields %s..",
                  ", ".join("`%s'"%p for p in required_fields))
-
-    required_fields.add('tweet_id')
 
     tweets = coll.find(find_criteria, dict.fromkeys(required_fields, 1))
     return tweets
@@ -221,15 +220,18 @@ def main(args=None):
         import traceback
         traceback.print_exc()
         return 2
+
     digits = len(str(int(tweets[0][0])))
     score_format = ".2f" if len(args.rank) == 1 else "0%sd" % digits
     score_format = ("%%%s," if args.raw else "[%%%s] ") % score_format
-    tweet_format = (u"%(id)s" if args.raw else u"@%(user)s: %(text)s")
+    tweet_format = (u"{tweet_id},{user[screen_name]},{text}" if args.raw
+                    else u"@{user[screen_name]}: {text}")
+
     for score, tweet in tweets:
         tweet['text'] = tweet['text'].encode('ascii', 'ignore')
         if args.show_score:
             print(score_format % (score,), end='')
-        print(tweet_format % tweet)
+        print(tweet_format.format(tweet))
     return 0
 
 if __name__ == '__main__':
