@@ -91,11 +91,7 @@ def rank(tweets, score_funcs, webpage, limit):
     zip_score_rank = list(zip(score_funcs, rankings))
     for tweet in tweets:
         key = tweet['tweet_id']
-        tweets_index[key] = dict(
-                user = tweet['user']['screen_name'],
-                text = tweet['text'],
-                id = key,
-        )
+        tweets_index[key] = tweet #XXX minimize
         for score_func, ranking in zip_score_rank:
             score = score_func(tweet, webpage)
             if not ranking.full():
