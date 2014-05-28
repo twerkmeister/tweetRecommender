@@ -15,17 +15,17 @@ from six import string_types
 
 
 GATHER_PACKAGE = 'tweetRecommender.gather'
-GATHER_MODULE = 'terms'
 GATHER_METHOD = 'gather'
 SCORE_PACKAGE = 'tweetRecommender.rank'
-SCORE_MODULES = ['text_overlap']
 SCORE_METHOD = 'score'
 SCORE_INFO_FIELDS = 'fields'
 FILTER_PACKAGE = 'tweetRecommender.filter'
-FILTER_MODULES = ['expected_time']
 FILTER_METHOD = 'filter'
 
 #XXX maybe use config values?
+GATHER_MODULE = 'terms'
+SCORE_MODULES = ['text_overlap']
+FILTER_MODULES = ['expected_time']
 TWEETS_COLLECTION = 'tweets'
 WEBPAGES_COLLECTION = 'webpages'
 TWEETS_SUBSAMPLE = 'sample_tweets'
