@@ -107,18 +107,29 @@ def rank(tweets, score_funcs, webpage, limit):
         overall = ((tweet, score) for score, tweet in rankings[0].queue)
     else:
         LOG.debug("Voting..")
-        # Borda count
-        overall = {}
-        for ranking in rankings:
-            for pos, (score, tweet) in enumerate(ranking.queue):
-                current = overall.get(tweet, 0)
-                overall[tweet] = current + count - pos
-        overall = overall.items()
+        overall = vote(rankings)
 
     LOG.debug("Sorting..")
-    #XXX consider ties
     return [(score, tweets_index[tweet]) for tweet, score in
             sorted(overall, key=operator.itemgetter(1), reverse=True)[:limit]]
+
+
+def vote(rankings):
+    """Determine an overall ranking between several voters."""
+    # Borda count
+    overall = {}
+    count = len(rankings[0].queue)
+    for ranking in rankings:
+        ties = 0
+        last_score = float('nan')
+        for pos, (score, item) in enumerate(ranking.queue):
+            if score == last_score:
+                ties += 1
+            current = overall.get(item, 0)
+            overall[item] = current + count - pos + ties
+            last_score = score
+    return overall.items()
+
 
 def _required_fields(funcs):
     fields = set()
