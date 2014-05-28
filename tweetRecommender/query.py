@@ -34,7 +34,7 @@ WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
 LOG = logging.getLogger('tweetRecommender.query')
 
 
-def query(uri, gather_func, score_funcs, filter_funcs, visible_fields,
+def query(uri, gather_func, score_funcs, filter_funcs, fields,
           tweets_coll, webpages_coll, limit):
     LOG.info("Querying for %s..", uri)
     webpage = webpages_coll.find_one(dict(url=uri))
@@ -42,8 +42,7 @@ def query(uri, gather_func, score_funcs, filter_funcs, visible_fields,
         #XXX webpage not found?  put it into the pipeline
         raise NotImplementedError
 
-    required_fields = _required_fields(rankers).union(visible_fields)
-    required_fields.add('tweet_id')
+    required_fields = _required_fields(score_funcs).union(fields)
 
     tweets = gather(webpage, gather_func, filter_funcs,
                     required_fields, tweets_coll)
@@ -64,10 +63,12 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
                 filter_func.__module__, filter_func)
         new_criteria = filter_func(webpage)
         LOG.info("New criteria: %s", new_criteria)
+        #XXX merge conflicts (overridden fields)
         find_criteria.update(new_criteria)
 
     LOG.info("Retrieving tweets with fields %s..",
                  ", ".join("`%s'"%p for p in required_fields))
+    required_fields.add('tweet_id')
 
     tweets = coll.find(find_criteria, dict.fromkeys(required_fields, 1))
     return tweets
@@ -128,7 +129,8 @@ def _required_fields(funcs):
     return fields
 
 
-def run(url, gatherer, rankers, filters, tweets_ref, webpages_ref, limit):
+def run(url, gatherer, rankers, filters,
+        fields, tweets_ref, webpages_ref, limit):
     """Wrapper upon `query` which handles textual references to the gather/rank
     components and the tweets/webpages collection.
 
@@ -144,7 +146,7 @@ def run(url, gatherer, rankers, filters, tweets_ref, webpages_ref, limit):
     tweets_coll = mongo.coll(tweets_ref)
     webpages_coll = mongo.coll(webpages_ref)
 
-    return query(url, gather_func, score_funcs, filter_funcs,
+    return query(url, gather_func, score_funcs, filter_funcs, fields,
                  tweets_coll, webpages_coll, limit)
 
 
@@ -218,7 +220,7 @@ def main(args=None):
     try:
         tweets = run(url=args.url, limit=args.limit,
             gatherer=args.gather, rankers=args.rank, filters=args.filters,
-            visible_fields=['user.screen_name', 'text'],
+            fields=['user.screen_name', 'text'],
             tweets_ref=args.tweets, webpages_ref=args.webpages)
     except Exception, e:
         import traceback
