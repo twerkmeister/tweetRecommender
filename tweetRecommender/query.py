@@ -102,7 +102,7 @@ def rank(tweets, score_funcs, webpage, limit):
 
     if nvotes == 1:
         LOG.info("Skipped voting;  monarchy.")
-        overall = ((tweet, score) for score, tweet in ranking.queue)
+        overall = ((tweet, score) for score, tweet in rankings[0].queue)
     else:
         LOG.debug("Voting..")
         # Borda count
