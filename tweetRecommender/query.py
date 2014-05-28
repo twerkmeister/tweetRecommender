@@ -12,7 +12,7 @@ from tweetRecommender.machinery import load_component, find_components
 from tweetRecommender.mongo import mongo
 from tweetRecommender.util import set_vars
 
-from six import string_types
+import six
 
 
 GATHER_PACKAGE = 'tweetRecommender.gather'
@@ -128,7 +128,7 @@ def vote(rankings):
             current = overall.get(item, 0)
             overall[item] = current + count - pos + ties
             last_score = score
-    return ((score, tweet) for tweet, score in overall.items()))
+    return ((score, tweet) for tweet, score in six.iteritems(overall))
 
 
 def _required_fields(funcs):
@@ -145,7 +145,7 @@ def run(url, gatherer, rankers, filters,
 
     """
     gather_func = load_component(GATHER_PACKAGE, gatherer, GATHER_METHOD)
-    if isinstance(rankers, string_types):
+    if isinstance(rankers, six.string_types):
         rankers = [rankers]  # backwards compat
     score_funcs = [load_component(SCORE_PACKAGE, ranker, SCORE_METHOD)
                    for ranker in rankers]
