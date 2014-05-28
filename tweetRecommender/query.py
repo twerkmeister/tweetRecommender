@@ -104,13 +104,13 @@ def rank(tweets, score_funcs, webpage, limit):
 
     if nvotes == 1:
         LOG.info("Skipped voting;  monarchy.")
-        overall = ((tweet, score) for score, tweet in rankings[0].queue)
+        overall = rankings[0].queue
     else:
         LOG.debug("Voting..")
         overall = vote(rankings)
 
     LOG.debug("Sorting..")
-    return [(score, tweets_index[tweet]) for tweet, score in
+    return [(score, tweets_index[tweet]) for score, tweet in
             sorted(overall, key=operator.itemgetter(1), reverse=True)[:limit]]
 
 
@@ -128,7 +128,7 @@ def vote(rankings):
             current = overall.get(item, 0)
             overall[item] = current + count - pos + ties
             last_score = score
-    return overall.items()
+    return ((score, tweet) for tweet, score in overall.items()))
 
 
 def _required_fields(funcs):
