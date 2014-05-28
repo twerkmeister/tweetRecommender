@@ -81,7 +81,8 @@ def rank(tweets, score_funcs, webpage, limit):
     LOG.info("Counted %d tweets.", count)
 
     nvotes = len(score_funcs)
-    rankings = [Queue.PriorityQueue(count)
+    window = count if nvotes > 1 else limit
+    rankings = [Queue.PriorityQueue(window)
                 for _ in range(nvotes)]
     LOG.info("Scoring by %s..",
             ", ".join("%s.%s" % (s.__module__, s) for s in score_funcs))
@@ -95,7 +96,11 @@ def rank(tweets, score_funcs, webpage, limit):
         )
         for score_func, ranking in zip(score_funcs, rankings):
             score = score_func(tweet, webpage)
-            ranking.put((score, key))
+            if not ranking.full():
+                ranking.put((score, key))
+            elif score > ranking.queue[0][0]:
+                ranking.get()
+                ranking.put((score, key))
 
     if nvotes == 1:
         LOG.info("Skipped voting;  monarchy.")
