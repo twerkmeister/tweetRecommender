@@ -77,15 +77,18 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
     return tweets
 
 def rank(tweets, score_funcs, webpage, limit):
-    LOG.debug("Counting tweets..")
-    count = tweets.count()  #XXX ugh!
-    if not count:
-        LOG.warning("No tweets retrieved; abort.")
-        return []  # exit early
-    LOG.info("Counted %d tweets.", count)
-
     nvotes = len(score_funcs)
-    window = count if nvotes > 1 else limit
+    if nvotes > 1:
+        LOG.debug("Counting tweets..")
+        count = tweets.count()  #XXX ugh!
+        if not count:
+            LOG.warning("No tweets retrieved; abort.")
+            return []  # exit early
+        LOG.info("Counted %d tweets.", count)
+        window = count
+    else:
+        window = limit
+
     rankings = [Queue.PriorityQueue(window)
                 for _ in range(nvotes)]
     LOG.info("Scoring by %s..",
