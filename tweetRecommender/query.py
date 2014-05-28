@@ -111,7 +111,7 @@ def rank(tweets, score_funcs, webpage, limit):
 
     LOG.debug("Sorting..")
     return [(score, tweets_index[tweet]) for score, tweet in
-            sorted(overall, key=operator.itemgetter(1), reverse=True)[:limit]]
+            sorted(overall, key=operator.itemgetter(0), reverse=True)[:limit]]
 
 
 def vote(rankings):
