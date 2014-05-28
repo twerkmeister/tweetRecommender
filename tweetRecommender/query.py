@@ -87,6 +87,7 @@ def rank(tweets, score_funcs, webpage, limit):
     LOG.info("Scoring by %s..",
             ", ".join("%s.%s" % (s.__module__, s) for s in score_funcs))
     tweets_index = {}
+    zip_score_rank = list(zip(score_funcs, rankings))
     for tweet in tweets:
         key = tweet['tweet_id']
         tweets_index[key] = dict(
@@ -94,7 +95,7 @@ def rank(tweets, score_funcs, webpage, limit):
                 text = tweet['text'],
                 id = key,
         )
-        for score_func, ranking in zip(score_funcs, rankings):
+        for score_func, ranking in zip_score_rank:
             score = score_func(tweet, webpage)
             if not ranking.full():
                 ranking.put((score, key))
