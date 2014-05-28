@@ -246,7 +246,7 @@ def main(args=None):
         tweet['text'] = tweet['text'].encode('ascii', 'ignore')
         if args.show_score:
             print(score_format % (score,), end='')
-        print(tweet_format.format(tweet))
+        print(tweet_format.format(**tweet))
     return 0
 
 if __name__ == '__main__':
