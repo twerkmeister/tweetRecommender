@@ -90,7 +90,7 @@ def rank(tweets, score_funcs, webpage, limit):
         window = limit
 
     rankings = [Queue.PriorityQueue(window)
-                for _ in range(nvotes)]
+                for _ in score_funcs]
     LOG.info("Scoring by %s..",
             ", ".join("%s.%s" % (s.__module__, s) for s, w in score_funcs))
 
