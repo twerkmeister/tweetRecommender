@@ -7,6 +7,7 @@ import logging
 import operator
 import Queue
 
+from tweetRecommender.config import config
 from tweetRecommender.machinery import load_component, find_components
 from tweetRecommender.mongo import mongo
 from tweetRecommender.util import set_vars
@@ -22,10 +23,11 @@ SCORE_INFO_FIELDS = 'fields'
 FILTER_PACKAGE = 'tweetRecommender.filter'
 FILTER_METHOD = 'filter'
 
+cfg = config['query']
+GATHER_MODULE = cfg['gather']
+SCORE_MODULES = cfg['rank'].split(',')
+FILTER_MODULES = cfg['filter'].split(',')
 #XXX maybe use config values?
-GATHER_MODULE = 'terms'
-SCORE_MODULES = ['text_overlap']
-FILTER_MODULES = ['expected_time']
 TWEETS_COLLECTION = 'tweets'
 WEBPAGES_COLLECTION = 'webpages'
 TWEETS_SUBSAMPLE = 'sample_tweets'
