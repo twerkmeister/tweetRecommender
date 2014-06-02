@@ -1,2 +1,2 @@
 def gather(webpage):
-    return {"full_urls": url}
+    return {"full_urls": webpage['url']}
