@@ -25,7 +25,8 @@ def query():
 			if action == "search":
 				url = request.form.get('url')
 
-				tweets = recommend(url, gather, [ranking], 
+				tweets = recommend(url, gather, [ranking], ['expected_time'],
+                                        ['user.screen_name', 'created_at', 'text'],
 					'sample_tweets', 'sample_webpages', limit)
 				return render_template('result.html', url=url, tweets=tweets)
 
