@@ -33,7 +33,7 @@ def query():
                         else:
 				raise ValueError("invalid action")
 
-			tweets = recommend(url, gather, [ranking],
+			tweets = recommend(url, gather, [ranking], ['expected_time'],
 				['user.screen_name', 'created_at', 'text'],
 				'sample_tweets', 'sample_webpages', limit)
 			return render_template('result.html', url=url, tweets=tweets)
