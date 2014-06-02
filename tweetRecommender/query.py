@@ -20,6 +20,7 @@ GATHER_METHOD = 'gather'
 SCORE_PACKAGE = 'tweetRecommender.rank'
 SCORE_METHOD = 'score'
 SCORE_INFO_FIELDS = 'fields'
+SCORE_WEIGHT_SEP = ':'
 FILTER_PACKAGE = 'tweetRecommender.filter'
 FILTER_METHOD = 'filter'
 
@@ -44,7 +45,7 @@ def query(uri, gather_func, score_funcs, filter_funcs, fields,
         #XXX webpage not found?  put it into the pipeline
         raise NotImplementedError
 
-    required_fields = _required_fields(score_funcs).union(fields)
+    required_fields = _required_fields(f for f, w in score_funcs).union(fields)
 
     tweets = gather(webpage, gather_func, filter_funcs,
                     required_fields, tweets_coll)
@@ -76,19 +77,25 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
     return tweets
 
 def rank(tweets, score_funcs, webpage, limit):
-    LOG.debug("Counting tweets..")
-    count = tweets.count()  #XXX ugh!
-    if not count:
-        LOG.warning("No tweets retrieved; abort.")
-        return []  # exit early
-    LOG.info("Counted %d tweets.", count)
-
     nvotes = len(score_funcs)
-    window = count if nvotes > 1 else limit
+    if nvotes > 1:
+        LOG.debug("Counting tweets..")
+        count = tweets.count()  #XXX ugh!
+        if not count:
+            LOG.warning("No tweets retrieved; abort.")
+            return []  # exit early
+        LOG.info("Counted %d tweets.", count)
+        window = count
+    else:
+        window = limit
+
     rankings = [Queue.PriorityQueue(window)
-                for _ in range(nvotes)]
+                for _ in score_funcs]
     LOG.info("Scoring by %s..",
-            ", ".join("%s.%s" % (s.__module__, s) for s in score_funcs))
+            ", ".join("%s.%s" % (s.__module__, s) for s, w in score_funcs))
+
+    score_funcs, weights = zip(*score_funcs)
+
     tweets_index = {}
     zip_score_rank = list(zip(score_funcs, rankings))
     for tweet in tweets:
@@ -107,11 +114,11 @@ def rank(tweets, score_funcs, webpage, limit):
         overall = rankings[0].queue
     else:
         LOG.debug("Voting..")
-        overall = vote(rankings)
+        overall = vote(rankings, weights)
 
     LOG.debug("Sorting..")
     return [(score, tweets_index[tweet]) for score, tweet in
-            sorted(overall, key=operator.itemgetter(1), reverse=True)[:limit]]
+            sorted(overall, key=operator.itemgetter(0), reverse=True)[:limit]]
 
 
 def vote(rankings):
@@ -119,14 +126,14 @@ def vote(rankings):
     # Borda count
     overall = {}
     count = len(rankings[0].queue)
-    for ranking in rankings:
+    for ranking, weight in zip(rankings, weights):
         ties = 0
         last_score = float('nan')
         for pos, (score, item) in enumerate(ranking.queue):
             if score == last_score:
                 ties += 1
             current = overall.get(item, 0)
-            overall[item] = current + count - pos + ties
+            overall[item] = current + (count - pos + ties) * weight
             last_score = score
     return ((score, tweet) for tweet, score in six.iteritems(overall))
 
@@ -145,10 +152,16 @@ def run(url, gatherer, rankers, filters,
 
     """
     gather_func = load_component(GATHER_PACKAGE, gatherer, GATHER_METHOD)
+
+    # backwards compat
     if isinstance(rankers, six.string_types):
-        rankers = [rankers]  # backwards compat
-    score_funcs = [load_component(SCORE_PACKAGE, ranker, SCORE_METHOD)
-                   for ranker in rankers]
+        rankers = [rankers]
+    if len(rankers[0]) != 2:
+        rankers = [(ranker, 1) for ranker in rankers]
+    score_funcs = [
+            (load_component(SCORE_PACKAGE, ranker, SCORE_METHOD), weight)
+            for ranker, weight in rankers]
+
     filter_funcs = [load_component(FILTER_PACKAGE, filter_, FILTER_METHOD)
                     for filter_ in filters]
 
@@ -226,9 +239,18 @@ def main(args=None):
         format = "[%(levelname)s] %(message)s",
     )
 
+
+    rankers = []
+    for arg in args.rank:
+        if SCORE_WEIGHT_SEP in arg:
+            func, weight = arg.split(SCORE_WEIGHT_SEP, 1)
+            rankers.append((func, int(weight)))
+        else:
+            rankers.append((arg, 1))
+
     try:
         tweets = run(url=args.url, limit=args.limit,
-            gatherer=args.gather, rankers=args.rank, filters=args.filters,
+            gatherer=args.gather, rankers=rankers, filters=args.filters,
             fields=['user.screen_name', 'text'],
             tweets_ref=args.tweets, webpages_ref=args.webpages)
     except Exception, e:
