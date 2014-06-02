@@ -39,5 +39,6 @@ def query():
 			return render_template('result.html', url=url, tweets=tweets)
 
 		except Exception, e:
+			import traceback; traceback.print_exc()
 			return render_template('result.html', url=e)
 		
