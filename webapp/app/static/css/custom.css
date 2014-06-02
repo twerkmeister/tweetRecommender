@@ -84,3 +84,22 @@ code {
 .tweet-body {
   margin-top: 5px;
 }
+
+/* result.html css 
+---------------------------------------------------- */
+#main {     
+    margin: 0 auto;
+}
+#left_side    {
+    width: 50%;       
+    float: left;
+}
+
+#right_side  {
+    width: 50%;        
+    float: left;
+}
+
+.table_space tr{
+	padding:4px;	
+}

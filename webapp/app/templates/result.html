@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 
-{% block content %}
-  <h3>Result</h3>
-  <p><a href="{{ url }}" target="_blank">{{ url }}</a></p>
+{% block content %}  
+  <h3>Result</h3>  
+  <p><a href="{{ url }}" target="_blank">{{ url }}</a></p>  
+  <div id="main">
+  <div id="left_side">  
   {% if tweets %}
     <h4>Tweets:</h4>
     {% for tweet in tweets %}
@@ -12,4 +14,17 @@
 	  {% endif %}
     {% endfor %}
   {% endif %}
+  </div>
+  <div id="right_side">
+  {% if tweets1 %}
+    <h4>Tweets:</h4>
+    {% for tweet in tweets1 %}
+      {% include "tweet.html" %}
+      {% if not loop.last %}
+        <hr />
+	  {% endif %}
+    {% endfor %}
+  {% endif %}
+  </div>
+  </div>
 {% endblock %}

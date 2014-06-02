@@ -6,24 +6,60 @@
 <form method="post" class="form-search">
 	<div style="margin-bottom: 10px;">
 	  <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#demo">Advanced Options</button>	 
-		<div id="demo" class="collapse out"> 
-			<table>
+		<div id="demo" class="collapse out">   
+			<table style="border-collapse:separate;border-spacing:4px;">
 				<tr>
 					<td><label>Limit</label></td>
 					<td><input type="text" name="limit" class="input-mini" value="5" /></td>
 				</tr>
 				<tr>
-					<td><label>Gather method</label></td>
-					<td><input type="text" name="gather" class="input-medium" value="urlmatching" /></td>
+					<td><label>Gather method 1</label></td>					
+					<td>
+						<select class="form-control" name = "gather">							
+    						<option value="entities">ENTITIES</option>
+    						<option value="terms">FOLLOWER</option>
+						    <option value="urlmatching" SELECTED>URL MATCHING</option>    						
+						</select>	
+					</td>
 				</tr>
 				<tr>
-					<td><label>Ranking method</label></td>
-					<td><input type="text" name="ranking" class="input-medium" value="follower_count" /></td>
+					<td><label>Ranking method 1</label></td>										
+					<td>
+						<select class="form-control" name = "ranking">							
+    						<option value="date">DATE</option>
+    						<option value="follower_count" SELECTED>FOLLOWER</option>
+						    <option value="lda_cossim">COSINE SIMILARITY</option>
+    						<option value="lda_hellinger">HELLINGER</option>
+    						<option value="text_overlap">TEXT OVERLAP</option>    						
+						</select>	
+					</td>
 				</tr>
-			</table>
-		</div>
-	</div>
-
+				<tr>
+					<td><label>Gather method 2</label></td>					
+					<td>
+						<select class="form-control" name = "gather1">
+							<option value="">SELECT GATHER</option>
+    						<option value="entities">ENTITIES</option>
+    						<option value="terms">TERMS</option>
+						    <option value="urlmatching">URL MATCHING</option>    						
+						</select>	
+					</td>
+				</tr>
+				<tr>
+					<td><label>Ranking method 2</label></td>										
+					<td>
+						<select class="form-control" name = "ranking1">
+							<option value="">SELECT RANKING</option>
+    						<option value="date">DATE</option>
+    						<option value="follower_count">FOLLOWER</option>
+						    <option value="lda_cossim">COSINE SIMILARITY</option>
+    						<option value="lda_hellinger">HELLINGER</option>
+    						<option value="text_overlap">TEXT OVERLAP</option>
+						</select>	
+					</td>
+				</tr>
+			</table>					
+		</div>		 
   <input type="text" placeholder="Insert url..." class="input-large search-query" name="url" />
   <button type="submit" class="btn btn-primary" name="action" value="search">Search</button>
   <button type="submit" class="btn" name="action" value="random">Random article</button>
