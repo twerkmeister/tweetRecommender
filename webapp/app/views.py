@@ -25,20 +25,18 @@ def query():
 			if action == "search":
 				url = request.form.get('url')
 
-				tweets = recommend(url, gather, [ranking], ['expected_time'],
-                                        ['user.screen_name', 'created_at', 'text'],
-					'sample_tweets', 'sample_webpages', limit)
-				return render_template('result.html', url=url, tweets=tweets)
-
 			elif action == "random":
 				random_max = mongo.db["sample_webpages"].count() - 1
 				random_webpage = mongo.db["sample_webpages"].find().skip(
 					randint(0,random_max)).limit(1)[0]
 				url = random_webpage.get('url')
+                        else:
+				raise ValueError("invalid action")
 
-				tweets = recommend(url, gather, [ranking], 
-					'sample_tweets', 'sample_webpages', limit)
-				return render_template('result.html', url=url, tweets=tweets)
+			tweets = recommend(url, gather, [ranking],
+				['user.screen_name', 'created_at', 'text'],
+				'sample_tweets', 'sample_webpages', limit)
+			return render_template('result.html', url=url, tweets=tweets)
 
 		except Exception, e:
 			return render_template('result.html', url=e)
