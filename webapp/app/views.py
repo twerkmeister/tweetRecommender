@@ -8,7 +8,7 @@ from random import randint
 
 @app.route("/", methods=['GET'])
 def home():
-    return redirect(url_for('query'))
+    return render_template('index.html')
 
 @app.route("/query", methods=['GET', 'POST'])
 def query():

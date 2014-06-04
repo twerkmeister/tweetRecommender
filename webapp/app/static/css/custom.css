@@ -35,7 +35,21 @@ body {
   }
 }
 
+.search {
+  width: 50%;
+  margin: 0 auto;
+}
 
+#searchbar {
+  width: 90%;
+  height: 30px;
+  margin: 0px auto 20px auto;
+}
+
+.center {
+  width: 50%;
+  margin: 0 auto;
+}
 
 /* Custom page CSS
 -------------------------------------------------- */
