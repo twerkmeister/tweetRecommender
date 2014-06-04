@@ -6,6 +6,23 @@
     <link href="/static/css/custom.css" rel="stylesheet">
     <script src="http://code.jquery.com/jquery-latest.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/ICanHaz.js"></script>
+
+    <script id="resultlist" type="text/html">
+// methods, precision, recall, #tweets processed
+    </script>
+
+    <script id ="tweet" type="text/html">
+      <div class="tweet">
+        <div class="tweet-header">
+          <span class="tweet-author">{{ username }}</span>
+          <span class="tweet-date">{{ date }}</span>
+          <span class="badge badge-info">{{ score }}</span>
+        </div>
+        <p class="tweet-body">{{ text }}</p>
+      </div>
+    </script>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
   <body>
@@ -30,10 +47,10 @@
       <div class="container">
         <div class="search">
           <h3>Find relevant tweets for news</h3>
-          <input type="text" id="searchbar" placeholder="Insert url..." class="input-large search-query" name="url" />
+          <input type="text" id="searchbar" placeholder="Insert url..." class="input-large" name="url" />
           <div class="center">
-            <button type="submit" class="btn btn-primary" name="action" value="search">Search</button>
-            <button type="submit" class="btn" name="action" value="random">Random article</button>
+            <button type="submit" id="searchbutton" class="btn" name="action" value="search">Search</button>
+            <button type="submit" id="randombutton" class="btn" name="action" value="random">Random article</button>
           </div>
         </div>
       </div>
@@ -46,6 +63,28 @@
         <p class="muted credit">Masterproject summer term 2014 at <a href="https://www.hpi.uni-potsdam.de/willkommen.html" target="_blank">HPI Potsdam</a> "Finding relevant tweets for news". Find us <a href="https://github.com/lesnail/tweetRecommender" target="_blank">@github</a>.</p>
       </div>
     </div>
+  <script type="text/javascript">
+    var processRanking = function(data, textStatus, jqXHR) {
+        console.log(data.tweets.length);
+        for(var i = 0; i < data.tweets.length; i++) {
+          var tweet = data.tweets[i][1];
+          var score = data.tweets[i][0];
+          var tweetData = {
+            "username": tweet["user"]["screen_name"],
+            "score": score,
+            "text": tweet["text"],
+            "date": tweet["created_at"]
+          };
+          
+          var tweetHTML = ich.tweet(tweetData);
+          $(".search").append(tweetHTML);
+        }
+      }
 
+    $("#randombutton").click(function(){
+      $(".tweet").remove()
+      $.ajax("query", {"type": "POST", "data": {"action": "random"}, "success": processRanking});
+    })
+  </script>
   </body>
 </html>
