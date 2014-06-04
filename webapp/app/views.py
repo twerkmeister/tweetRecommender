@@ -21,7 +21,9 @@ def query():
 		ranking = request.form.get('ranking')
 		action = request.form.get('action')
         gather1 = request.form.get('gather1')
-        ranking1 = request.form.get('ranking1')                
+        ranking1 = request.form.get('ranking1')
+        method = (ranking, gather)
+        method1 = (ranking1, gather1)
         try:        
             if action == "search":
                 url = request.form.get('url')
@@ -39,10 +41,10 @@ def query():
             if ranking1 != "" and gather1 != "":
                 tweets1 = recommend(url, gather1, [ranking1], ['expected_time'],
                                     ['user.screen_name', 'created_at', 'text'], 'sample_tweets',
-                                    'sample_webpages', limit)
-                return render_template('result.html', url=url, tweets=tweets, tweets1=tweets1)
+                                    'sample_webpages', limit)                
+                return render_template('result.html', url=url, tweets=tweets, tweets1=tweets1, method = method, method1 = method1)
             else:
-                return render_template('result.html', url=url, tweets=tweets)
+                return render_template('result.html', url=url, tweets=tweets, method = method)
         except Exception, e:
 		    import traceback; traceback.print_exc()
 		    return render_template('result.html', url=e)		
