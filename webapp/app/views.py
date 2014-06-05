@@ -54,11 +54,12 @@ def index():
 def query():
     if request.method == 'POST':    
         limit = 10
-        gather = "terms"
-        ranking = "text_overlap"
-        action = "random"
+        gatheringMethod = request.json["gatheringMethod"]
+        filteringMethods = request.json["filteringMethods"]
+        rankingMethods = request.json["rankingMethods"]
+        action = request.json["action"]
         result = {"tweets": []}    
-        try:        
+        try:
             if action == "search":
                 url = request.form.get('url')
             elif action == "random":
@@ -68,7 +69,7 @@ def query():
             else:
                  raise ValueError("invalid action")
             
-            result["tweets"] = recommend(url, gather, [ranking], ['expected_time'], 
+            result["tweets"] = recommend(url, gatheringMethod, rankingMethods, filteringMethods, 
                                ['user.screen_name', 'created_at', 'text'], 
                                'sample_tweets', 'sample_webpages', limit)
             
@@ -85,7 +86,7 @@ def options():
     scoringMethods = list(find_components(SCORE_PACKAGE))
     gatheringMethods = list(find_components(GATHER_PACKAGE))
     filteringMethods = list(find_components(FILTER_PACKAGE))
-    options = {"scoringMethods": scoringMethods,
+    options = {"rankingMethods": scoringMethods,
     "gatheringMethods": gatheringMethods,
     "filteringMethods": filteringMethods}
     return jsonify(options)

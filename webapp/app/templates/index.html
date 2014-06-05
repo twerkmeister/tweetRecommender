@@ -8,20 +8,27 @@
     <script src="/static/js/bootstrap.min.js"></script>
     <script src="/static/js/ICanHaz.js"></script>
 
-    <script id="option" type="text/html">
-      <input type="checkbox" value="{{ name }}">{{ name }}<br>
+
+    <script id="selectorOption" type="text/html">
+      <option>{{name}}</option>
+    </script>
+
+    <script id="checkOption" type="text/html">
+      <input type="checkbox" class="checkoption" name="{{ name }}" value="{{ name }}">{{ name }}<br>
     </script>
 
     <script id="optionset" type="text/html">
       <div class="optionset">
-        <div class="gatheringMethods">
+        <form class="gatheringMethods">
           <h4>gathering</h4>
-          <form class="gatheringOptions"></form>
-        </div>
-        <div class="rankingMethods">
+          <select class="gatheringMethodSelector" name="gatheringMethodSelector"></select>
+        </form>
+        <form class="filteringMethods">
+          <h4>filtering</h4>
+        </form>
+        <form class="rankingMethods">
           <h4>ranking</h4>
-          <form class="rankingOptions"></form>
-        </div>
+        </form>
       </div>
     </script>
 
@@ -69,14 +76,7 @@
           <div class="center">
             <button type="submit" id="searchbutton" class="btn" name="action" value="search">Search</button>
             <button type="submit" id="randombutton" class="btn" name="action" value="random">Random article</button>
-            <form class="searchoptions">
-              <input type="checkbox" name="terms" value="terms">Bag of Words<br>
-              <input type="checkbox" name="lda" value="lda">LDA Cossim
-            </form>
-            <form class="searchoptions">
-              <input type="checkbox" name="terms" value="terms">Bag of Words<br>
-              <input type="checkbox" name="lda" value="lda">LDA Cossim
-            </form> 
+            <button type="submit" id="advancedbutton" class="btn" name="action" value="advanced">Options</button>
           </div>
         </div>
       </div>
@@ -107,17 +107,67 @@
         }
       }
 
+    var readOptions = function(optionSet){
+      var result = {
+        "filteringMethods": [],
+        "rankingMethods": []
+      };
+      result["gatheringMethod"] = $(optionSet).find(".gatheringMethods").serializeArray()[0].value;
+      var selectedFilteringMethods = $(optionSet).find(".filteringMethods").serializeArray();
+      for(var i = 0; i < selectedFilteringMethods.length; i++){
+        result["filteringMethods"].push(selectedFilteringMethods[i].value);
+      }
+      var selectedRankingMethods = $(optionSet).find(".rankingMethods").serializeArray();
+      for(var i = 0; i < selectedRankingMethods.length; i++){
+        result["rankingMethods"].push(selectedRankingMethods[i].value);
+      }
+      return result;
+    }
+
     $("#randombutton").click(function(){
-      $(".tweet").remove()
-      $.ajax("query", {"type": "POST", "data": {"action": "random"}, "success": processRanking});
-    })
+      $(".tweet").remove();
+      var options = readOptions($(".optionset")[0]);
+      options["action"] = "random";
+      $.ajax("query", {"type": "POST", "contentType": "application/json", "dataType": "json", "data": JSON.stringify(options), "success": processRanking});
+    });
+
+    $("#advancedbutton").click(function(){
+      $(".optionset").toggleClass("hidden");
+    });
   </script>
   <script type="text/javascript">
     $(document).ready(function () {
+      createOptionSet = function(){
+        var optionSet = ich.optionset({});
+
+        for(var i = 0; i < gatheringMethods.length; i++){
+          var option = ich.selectorOption({"name": gatheringMethods[i]});
+          $(optionSet).find(".gatheringMethodSelector").append(option);
+        }
+
+        for(var i = 0; i < filteringMethods.length; i++){
+          var option = ich.checkOption({"name": filteringMethods[i]});
+          $(optionSet).find(".filteringMethods").append(option);
+        }
+
+        for(var i = 0; i < rankingMethods.length; i++){
+          var option = ich.checkOption({"name": rankingMethods[i]});
+          $(optionSet).find(".rankingMethods").append(option);
+        }
+
+        //setting defaults
+        $(optionSet).find(".rankingMethods").find("[name='follower_count']").prop("checked", true);
+        $(optionSet).find(".filteringMethods").find("[name='expected_time']").prop("checked", true);
+
+        return optionSet
+      }
+
       $.ajax("options", {"success": function(data, textStatus, jqXHR){
         gatheringMethods = data["gatheringMethods"];
         rankingMethods = data["rankingMethods"];
+        filteringMethods = data["filteringMethods"];
 
+        $(".search").append(createOptionSet().addClass("hidden"));
       }});
 
     });
