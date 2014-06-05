@@ -7,6 +7,8 @@
   <div id="left_side">  
   {% if tweets %}
     <h4>Tweets:</h4>
+    <h5>Ranking: {{ method[0] }}</h5>
+    <h5>Gathering: {{ method[1] }}</h5>
     {% for tweet in tweets %}
       {% include "tweet.html" %}
       {% if not loop.last %}
@@ -18,6 +20,8 @@
   <div id="right_side">
   {% if tweets1 %}
     <h4>Tweets:</h4>
+    <h5>Ranking: {{ method1[0] }}</h5>
+    <h5>Gathering: {{ method1[1] }}</h5>
     {% for tweet in tweets1 %}
       {% include "tweet.html" %}
       {% if not loop.last %}

@@ -77,6 +77,7 @@ def query():
                 tweet.pop("_id")
 
             return jsonify(result)
+
         except Exception, e:
             import traceback; traceback.print_exc()
             return jsonify(result)
