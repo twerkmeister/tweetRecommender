@@ -1,6 +1,9 @@
 from tweetRecommender.query import run as recommend
 from tweetRecommender.mongo import mongo
 
+from tweetRecommender.query import SCORE_PACKAGE, GATHER_PACKAGE, FILTER_PACKAGE
+from tweetRecommender.machinery import load_component, find_components
+
 from app import app
 from flask import render_template, request, url_for, redirect, jsonify, send_file
 
@@ -79,6 +82,10 @@ def query():
 
 @app.route("/options")
 def options():
-    options = {"rankingMethods": ["date", "follower_count", "lda_cossim", "text_overlap"],
-    "gatheringMethods": ["entities", "terms", "urlmatching"]}
+    scoringMethods = list(find_components(SCORE_PACKAGE))
+    gatheringMethods = list(find_components(GATHER_PACKAGE))
+    filteringMethods = list(find_components(FILTER_PACKAGE))
+    options = {"scoringMethods": scoringMethods,
+    "gatheringMethods": gatheringMethods,
+    "filteringMethods": filteringMethods}
     return jsonify(options)
