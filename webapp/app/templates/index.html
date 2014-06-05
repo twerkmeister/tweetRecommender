@@ -8,7 +8,25 @@
     <script src="/static/js/bootstrap.min.js"></script>
     <script src="/static/js/ICanHaz.js"></script>
 
+    <script id="option" type="text/html">
+      <input type="checkbox" value="{{ name }}">{{ name }}<br>
+    </script>
+
+    <script id="optionset" type="text/html">
+      <div class="optionset">
+        <div class="gatheringMethods">
+          <h4>gathering</h4>
+          <form class="gatheringOptions"></form>
+        </div>
+        <div class="rankingMethods">
+          <h4>ranking</h4>
+          <form class="rankingOptions"></form>
+        </div>
+      </div>
+    </script>
+
     <script id="resultlist" type="text/html">
+    <div class="resultlist"></div>
 // methods, precision, recall, #tweets processed
     </script>
 
@@ -51,6 +69,14 @@
           <div class="center">
             <button type="submit" id="searchbutton" class="btn" name="action" value="search">Search</button>
             <button type="submit" id="randombutton" class="btn" name="action" value="random">Random article</button>
+            <form class="searchoptions">
+              <input type="checkbox" name="terms" value="terms">Bag of Words<br>
+              <input type="checkbox" name="lda" value="lda">LDA Cossim
+            </form>
+            <form class="searchoptions">
+              <input type="checkbox" name="terms" value="terms">Bag of Words<br>
+              <input type="checkbox" name="lda" value="lda">LDA Cossim
+            </form> 
           </div>
         </div>
       </div>
@@ -85,6 +111,16 @@
       $(".tweet").remove()
       $.ajax("query", {"type": "POST", "data": {"action": "random"}, "success": processRanking});
     })
+  </script>
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $.ajax("options", {"success": function(data, textStatus, jqXHR){
+        gatheringMethods = data["gatheringMethods"];
+        rankingMethods = data["rankingMethods"];
+
+      }});
+
+    });
   </script>
   </body>
 </html>

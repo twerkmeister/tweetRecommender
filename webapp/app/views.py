@@ -77,12 +77,8 @@ def query():
             import traceback; traceback.print_exc()
             return jsonify(result)
 
-@app.route("/ranking")
-def ranking():
-    ranking_methods = {"rankingMethods": ["date", "follower_count", "lda_cossim", "text_overlap"]}
-    return jsonify(ranking_methods)
-
-@app.route("/gathering")
-def gathering():
-    gathering_methods = {"gatheringMethods": ["entities", "terms", "urlmatching"]}
-    return jsonify(gathering_methods)
+@app.route("/options")
+def options():
+    options = {"rankingMethods": ["date", "follower_count", "lda_cossim", "text_overlap"],
+    "gatheringMethods": ["entities", "terms", "urlmatching"]}
+    return jsonify(options)
