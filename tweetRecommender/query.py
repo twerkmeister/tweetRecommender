@@ -121,7 +121,7 @@ def rank(tweets, score_funcs, webpage, limit):
             sorted(overall, key=operator.itemgetter(0), reverse=True)[:limit]]
 
 
-def vote(rankings):
+def vote(rankings, weights):
     """Determine an overall ranking between several voters."""
     # Borda count
     overall = {}
