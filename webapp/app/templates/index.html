@@ -16,7 +16,7 @@
           <h4>gathering</h4>
           <select name="gatheringMethod">
           <% gatheringMethods.forEach(function (gatheringMethod) { %>
-            <option><%= gatheringMethod %></option>
+            <option name="gatheringMethods[<%= gatheringMethod %>]"><%= gatheringMethod %></option>
           <% }) %>
           </select>
           <h4>filtering</h4>
@@ -126,7 +126,8 @@
           this.$el.html(this.template(this.data));
 
           //setting defaults
-          this.$("input[name=\"rankingMethods[follower_count]\"]").prop("checked", true);
+          this.$("option[name=\"gatheringMethods[terms]\"]")[0].selected = true
+          this.$("input[name=\"rankingMethods[text_overlap]\"]").prop("checked", true);
           this.$("input[name=\"filteringMethods[expected_time]\"]").prop("checked", true);
 
           return this;
