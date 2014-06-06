@@ -154,10 +154,11 @@
         },
 
 
-        loadRandomTweets : function () {
+        query : function () {
 
           var options = this.serialize();
-          options["action"] = "random";
+          options["url"] = $("#searchbar")[0].value;
+          options["action"] = "search";
 
           return $.ajax("query", {
             type: "POST",
@@ -179,11 +180,17 @@
 
 
 
-        $("#randombutton").click(function() {
+        $("#searchbutton").click(function() {
 
           $(".tweet").remove();
-          view.loadRandomTweets().done(processRanking);
+          view.query().done(processRanking);
 
+        });
+
+        $("#randombutton").click(function() {
+          $.ajax("url").done(function(data){
+            $("#searchbar")[0].value=data["url"];
+          });
         });
 
 

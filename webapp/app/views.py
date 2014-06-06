@@ -13,6 +13,14 @@ from random import randint
 def index():
     return send_file('templates/index.html')	
 
+@app.route("/url", methods=['GET'])
+def url():
+    random_max = mongo.db["sample_webpages"].count() - 1
+    random_webpage = mongo.db["sample_webpages"].find().skip(randint(0, random_max)).limit(1)[0]
+    url = random_webpage.get('url')
+    return jsonify({"url": url})
+
+
 @app.route("/query", methods=['POST'])
 def query():
     if request.method == 'POST':    
@@ -21,17 +29,9 @@ def query():
         filteringMethods = request.json["filteringMethods"]
         rankingMethods = request.json["rankingMethods"]
         action = request.json["action"]
+        url = request.json["url"]
         result = {"tweets": []}    
         try:
-            if action == "search":
-                url = request.form.get('url')
-            elif action == "random":
-                random_max = mongo.db["sample_webpages"].count() - 1
-                random_webpage = mongo.db["sample_webpages"].find().skip(randint(0, random_max)).limit(1)[0]
-                url = random_webpage.get('url')  
-            else:
-                 raise ValueError("invalid action")
-            
             result["tweets"] = recommend(url, gatheringMethod, rankingMethods, filteringMethods, 
                                ['user.screen_name', 'created_at', 'text'], 
                                'sample_tweets', 'sample_webpages', limit)
