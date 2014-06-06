@@ -51,7 +51,7 @@
         <div class="tweet-header">
           <span class="tweet-author"><%= user.screen_name %></span>
           <span class="tweet-date"><%= created_at %></span>
-          <span class="badge badge-info"><%= score %></span>
+          <span class="badge badge-info"><%= parseFloat(score).toFixed(3) %></span>
         </div>
         <p class="tweet-body"><%= text %></p>
       </div>
