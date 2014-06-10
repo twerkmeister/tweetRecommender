@@ -6,45 +6,54 @@
     <link href="/static/css/custom.css" rel="stylesheet">
     <script src="http://code.jquery.com/jquery-latest.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
-    <script src="/static/js/ICanHaz.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.syphon/0.4.1/backbone.syphon.min.js"></script>
 
-
-    <script id="selectorOption" type="text/html">
-      <option>{{name}}</option>
-    </script>
-
-    <script id="checkOption" type="text/html">
-      <input type="checkbox" class="checkoption" name="{{ name }}" value="{{ name }}">{{ name }}<br>
-    </script>
-
-    <script id="optionset" type="text/html">
+    <script type="text/template" id="optionset-template">
       <div class="optionset">
-        <form class="gatheringMethods">
+        <form>
           <h4>gathering</h4>
-          <select class="gatheringMethodSelector" name="gatheringMethodSelector"></select>
-        </form>
-        <form class="filteringMethods">
+          <select name="gatheringMethod">
+          <% gatheringMethods.forEach(function (gatheringMethod) { %>
+            <option name="gatheringMethods[<%= gatheringMethod %>]"><%= gatheringMethod %></option>
+          <% }) %>
+          </select>
           <h4>filtering</h4>
-        </form>
-        <form class="rankingMethods">
+          <% filteringMethods.forEach(function (filteringMethod) { %>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="filteringMethods[<%= filteringMethod %>]" value="<%= filteringMethod %>">
+                <%= filteringMethod %>
+              </label>
+            </div>
+          <% }) %>
           <h4>ranking</h4>
+          <% rankingMethods.forEach(function (rankingMethod) { %>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="rankingMethods[<%= rankingMethod %>]" value="<%= rankingMethod %>">
+                <%= rankingMethod %>
+              </label>
+            </div>
+          <% }) %>
         </form>
       </div>
     </script>
 
-    <script id="resultlist" type="text/html">
-    <div class="resultlist"></div>
-// methods, precision, recall, #tweets processed
+    <script type="text/template" id="resultlist-template">
+      <div class="resultlist"></div>
+      // methods, precision, recall, #tweets processed
     </script>
 
-    <script id ="tweet" type="text/html">
+    <script type="text/template" id ="tweet-template">
       <div class="tweet">
         <div class="tweet-header">
-          <span class="tweet-author">{{ username }}</span>
-          <span class="tweet-date">{{ date }}</span>
-          <span class="badge badge-info">{{ score }}</span>
+          <span class="tweet-author"><%= user.screen_name %></span>
+          <span class="tweet-date"><%= created_at %></span>
+          <span class="badge badge-info"><%= parseFloat(score).toFixed(3) %></span>
         </div>
-        <p class="tweet-body">{{ text }}</p>
+        <p class="tweet-body"><%= text %></p>
       </div>
     </script>
 
@@ -90,85 +99,107 @@
       </div>
     </div>
   <script type="text/javascript">
-    var processRanking = function(data, textStatus, jqXHR) {
-        console.log(data.tweets.length);
-        for(var i = 0; i < data.tweets.length; i++) {
-          var tweet = data.tweets[i][1];
-          var score = data.tweets[i][0];
-          var tweetData = {
-            "username": tweet["user"]["screen_name"],
-            "score": score,
-            "text": tweet["text"],
-            "date": tweet["created_at"]
-          };
-          
-          var tweetHTML = ich.tweet(tweetData);
-          $(".search").append(tweetHTML);
+    $(function () {
+
+      var tweetTemplate = _.template($("#tweet-template").html());
+      var processRanking = function(data, textStatus, jqXHR) {
+          console.log(data.tweets.length);
+          data.tweets.forEach(function (tweetObj, i) {
+            var tweet = tweetObj[1];
+            tweet.score = tweetObj[0];
+            
+            $(".search").append(tweetTemplate(tweet));
+          });
         }
-      }
+      
 
-    var readOptions = function(optionSet){
-      var result = {
-        "filteringMethods": [],
-        "rankingMethods": []
-      };
-      result["gatheringMethod"] = $(optionSet).find(".gatheringMethods").serializeArray()[0].value;
-      var selectedFilteringMethods = $(optionSet).find(".filteringMethods").serializeArray();
-      for(var i = 0; i < selectedFilteringMethods.length; i++){
-        result["filteringMethods"].push(selectedFilteringMethods[i].value);
-      }
-      var selectedRankingMethods = $(optionSet).find(".rankingMethods").serializeArray();
-      for(var i = 0; i < selectedRankingMethods.length; i++){
-        result["rankingMethods"].push(selectedRankingMethods[i].value);
-      }
-      return result;
-    }
+      var OptionSetView = Backbone.View.extend({
 
-    $("#randombutton").click(function(){
-      $(".tweet").remove();
-      var options = readOptions($(".optionset")[0]);
-      options["action"] = "random";
-      $.ajax("query", {"type": "POST", "contentType": "application/json", "dataType": "json", "data": JSON.stringify(options), "success": processRanking});
-    });
+        template : _.template($("#optionset-template").html()),
 
-    $("#advancedbutton").click(function(){
-      $(".optionset").toggleClass("hidden");
-    });
-  </script>
-  <script type="text/javascript">
-    $(document).ready(function () {
-      createOptionSet = function(){
-        var optionSet = ich.optionset({});
+        initialize : function (options) {
+          this.data = options.data;
+        },
 
-        for(var i = 0; i < gatheringMethods.length; i++){
-          var option = ich.selectorOption({"name": gatheringMethods[i]});
-          $(optionSet).find(".gatheringMethodSelector").append(option);
+        render : function () {
+
+          this.$el.html(this.template(this.data));
+
+          //setting defaults
+          this.$("option[name=\"gatheringMethods[terms]\"]")[0].selected = true
+          this.$("input[name=\"rankingMethods[text_overlap]\"]").prop("checked", true);
+          this.$("input[name=\"filteringMethods[expected_time]\"]").prop("checked", true);
+
+          return this;
+        },
+
+        toggle : function () {
+          this.$el.toggle();
+        },
+
+
+        foldCheckboxes : function (options, key) {
+          return _.transform(
+            options[key], function (result, value, key) { 
+              if (value) 
+                result.push(key); 
+            }, []
+          );
+        },
+
+        serialize : function () {
+          var options = Backbone.Syphon.serialize(this);
+          options.filteringMethods = this.foldCheckboxes(options, "filteringMethods");
+          options.rankingMethods = this.foldCheckboxes(options, "rankingMethods");
+          return options;
+        },
+
+
+        query : function () {
+
+          var options = this.serialize();
+          options["url"] = $("#searchbar")[0].value;
+          options["action"] = "search";
+
+          return $.ajax("query", {
+            type: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify(options)
+          });
         }
 
-        for(var i = 0; i < filteringMethods.length; i++){
-          var option = ich.checkOption({"name": filteringMethods[i]});
-          $(optionSet).find(".filteringMethods").append(option);
-        }
+      });
 
-        for(var i = 0; i < rankingMethods.length; i++){
-          var option = ich.checkOption({"name": rankingMethods[i]});
-          $(optionSet).find(".rankingMethods").append(option);
-        }
+      $.ajax("options").done(function(data) {
 
-        //setting defaults
-        $(optionSet).find(".rankingMethods").find("[name='follower_count']").prop("checked", true);
-        $(optionSet).find(".filteringMethods").find("[name='expected_time']").prop("checked", true);
+        var view = new OptionSetView({
+          data : data
+        });
+        $(".search").append(view.render().el);
+        $(".optionset").toggle();
 
-        return optionSet
-      }
 
-      $.ajax("options", {"success": function(data, textStatus, jqXHR){
-        gatheringMethods = data["gatheringMethods"];
-        rankingMethods = data["rankingMethods"];
-        filteringMethods = data["filteringMethods"];
 
-        $(".search").append(createOptionSet().addClass("hidden"));
-      }});
+        $("#searchbutton").click(function() {
+
+          $(".tweet").remove();
+          view.query().done(processRanking);
+
+        });
+
+        $("#randombutton").click(function() {
+          $.ajax("url").done(function(data){
+            $("#searchbar")[0].value=data["url"];
+          });
+        });
+
+
+        $("#advancedbutton").click(function(){
+          $(".optionset").toggle();
+        });
+
+      });
 
     });
   </script>
