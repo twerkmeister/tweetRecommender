@@ -1,3 +1,5 @@
+import six
+
 def vote(rankings, weights):
     """Determine an overall ranking between several voters."""
     # Borda count
