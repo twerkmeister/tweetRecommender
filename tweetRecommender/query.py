@@ -36,14 +36,17 @@ WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
 
 LOG = logging.getLogger('tweetRecommender.query')
 
-
-def query(uri, gather_func, score_funcs, filter_funcs, fields,
-          tweets_coll, webpages_coll, limit):
-    LOG.info("Querying for %s..", uri)
+def get_webpage(uri, webpages_coll):
     webpage = webpages_coll.find_one(dict(url=uri))
     if not webpage:
         #XXX webpage not found?  put it into the pipeline
         raise NotImplementedError
+    return webpage
+
+def query(uri, gather_func, score_funcs, filter_funcs, fields,
+          tweets_coll, webpages_coll, limit):
+    LOG.info("Querying for %s..", uri)
+    webpage = get_webpage(uri, webpages_coll)
 
     required_fields = _required_fields(f for f, w in score_funcs).union(fields)
 

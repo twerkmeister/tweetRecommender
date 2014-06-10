@@ -22,7 +22,6 @@ def url():
     url = random_webpage.get('url')
     return jsonify({"url": url})
 
-
 @app.route("/query", methods=['POST'])
 def query():
     webpages_coll = "sample_webpages"
@@ -43,10 +42,9 @@ def query():
         for score, tweet in result["tweets"]:
             tweet.pop("_id")
 
-        return jsonify(result)
-
     except Exception, e:
         import traceback; traceback.print_exc()
+    finally:
         return jsonify(result)
 
 @app.route("/options")
