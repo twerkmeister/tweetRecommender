@@ -11,6 +11,7 @@ from tweetRecommender.config import config
 from tweetRecommender.machinery import load_component, find_components
 from tweetRecommender.mongo import mongo
 from tweetRecommender.util import set_vars
+from tweetRecommender.voting import vote
 
 import six
 
@@ -119,23 +120,6 @@ def rank(tweets, score_funcs, webpage, limit):
     LOG.debug("Sorting..")
     return [(score, tweets_index[tweet]) for score, tweet in
             sorted(overall, key=operator.itemgetter(0), reverse=True)[:limit]]
-
-
-def vote(rankings, weights):
-    """Determine an overall ranking between several voters."""
-    # Borda count
-    overall = {}
-    count = len(rankings[0].queue)
-    for ranking, weight in zip(rankings, weights):
-        ties = 0
-        last_score = float('nan')
-        for pos, (score, item) in enumerate(ranking.queue):
-            if score == last_score:
-                ties += 1
-            current = overall.get(item, 0)
-            overall[item] = current + (count - pos + ties) * weight
-            last_score = score
-    return ((score, tweet) for tweet, score in six.iteritems(overall))
 
 
 def _required_fields(funcs):
