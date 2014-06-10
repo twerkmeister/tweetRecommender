@@ -4,6 +4,8 @@ from tweetRecommender.mongo import mongo
 from tweetRecommender.query import SCORE_PACKAGE, GATHER_PACKAGE, FILTER_PACKAGE
 from tweetRecommender.machinery import load_component, find_components
 
+from tweetRecommender.query import get_webpage
+
 from app import app
 from flask import render_template, request, url_for, redirect, jsonify, send_file
 
@@ -20,30 +22,30 @@ def url():
     url = random_webpage.get('url')
     return jsonify({"url": url})
 
-
 @app.route("/query", methods=['POST'])
 def query():
-    if request.method == 'POST':    
-        limit = 10
-        gatheringMethod = request.json["gatheringMethod"]
-        filteringMethods = request.json["filteringMethods"]
-        rankingMethods = request.json["rankingMethods"]
-        action = request.json["action"]
-        url = request.json["url"]
-        result = {"tweets": []}    
-        try:
-            result["tweets"] = recommend(url, gatheringMethod, rankingMethods, filteringMethods, 
-                               ['user.screen_name', 'created_at', 'text'], 
-                               'sample_tweets', 'sample_webpages', limit)
-            
-            for score, tweet in result["tweets"]:
-                tweet.pop("_id")
+    webpages_coll = "sample_webpages"
+    limit = 10
+    
+    gatheringMethod = request.json["gatheringMethod"]
+    filteringMethods = request.json["filteringMethods"]
+    rankingMethods = request.json["rankingMethods"]
+    action = request.json["action"]
+    url = request.json["url"]
 
-            return jsonify(result)
+    result = {"tweets": []}   
+    try:
+        result["tweets"] = recommend(url, gatheringMethod, rankingMethods, filteringMethods, 
+                           ['user.screen_name', 'created_at', 'text'], 
+                           'sample_tweets', webpages_coll, limit)
+        
+        for score, tweet in result["tweets"]:
+            tweet.pop("_id")
 
-        except Exception, e:
-            import traceback; traceback.print_exc()
-            return jsonify(result)
+    except Exception, e:
+        import traceback; traceback.print_exc()
+    finally:
+        return jsonify(result)
 
 @app.route("/options")
 def options():
