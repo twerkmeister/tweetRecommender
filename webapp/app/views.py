@@ -7,38 +7,41 @@ from tweetRecommender.machinery import load_component, find_components
 from tweetRecommender.query import get_webpage
 
 from app import app
-from flask import render_template, request, url_for, redirect, jsonify, send_file
+from flask import render_template, request, url_for, redirect, jsonify, send_file, session
 
-from random import randint
+
+WEBPAGES_COLLECTION = 'sample_webpages'
+TWEETS_COLLECTION = 'sample_tweets'
+LIMIT = 10
+
+
+def random_url():
+    return mongo.random(WEBPAGES_COLL)['url']
+
 
 @app.route("/", methods=['GET'])
 def index():
-    return send_file('templates/index.html')	
+    return send_file('templates/index.html')
 
 @app.route("/url", methods=['GET'])
 def url():
-    random_max = mongo.db["sample_webpages"].count() - 1
-    random_webpage = mongo.db["sample_webpages"].find().skip(randint(0, random_max)).limit(1)[0]
-    url = random_webpage.get('url')
-    return jsonify({"url": url})
+    return jsonify(dict(url=random_url()))
+
 
 @app.route("/query", methods=['POST'])
 def query():
-    webpages_coll = "sample_webpages"
-    limit = 10
-    
     gatheringMethod = request.json["gatheringMethod"]
     filteringMethods = request.json["filteringMethods"]
     rankingMethods = request.json["rankingMethods"]
     action = request.json["action"]
     url = request.json["url"]
 
-    result = {"tweets": []}   
+    result = {"tweets": []}
     try:
-        result["tweets"] = recommend(url, gatheringMethod, rankingMethods, filteringMethods, 
-                           ['user.screen_name', 'created_at', 'text'], 
-                           'sample_tweets', webpages_coll, limit)
-        
+        result["tweets"] = recommend(url, gatheringMethod, rankingMethods, filteringMethods,
+                           ['user.screen_name', 'created_at', 'text'],
+                           TWEETS_COLLECTION, WEBPAGES_COLLECTION, LIMIT)
+
         for score, tweet in result["tweets"]:
             tweet.pop("_id")
 
