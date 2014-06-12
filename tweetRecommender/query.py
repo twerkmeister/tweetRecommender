@@ -238,10 +238,10 @@ def main(args=None):
         return 2
 
     digits = len(str(int(tweets[0][0])))
-    score_format = ".2f" if len(args.rank) == 1 else "0%sd" % digits
+    score_format = ".3f" if len(args.rank) == 1 else "0%sd" % digits
     score_format = ("%%%s," if args.raw else "[%%%s] ") % score_format
-    tweet_format = (u"{tweet_id},{user[screen_name]},{text}" if args.raw
-                    else u"@{user[screen_name]}: {text}")
+    tweet_format = (u"{tweet_id},{user[screen_name]},{text!r}" if args.raw
+                    else u"@{user[screen_name]}: {text!r}")
 
     for score, tweet in tweets:
         tweet['text'] = tweet['text'].encode('ascii', 'ignore')
