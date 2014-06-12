@@ -1,3 +1,5 @@
+import random
+
 from tweetRecommender.query import run as recommend, get_webpage
 from tweetRecommender.mongo import mongo
 from tweetRecommender import machinery
@@ -16,6 +18,20 @@ LIMIT = 10
 
 def random_url():
     return mongo.random(WEBPAGES_COLLECTION)['url']
+
+def random_options():
+    gather = random.choice(list(machinery.find_components(
+        machinery.GATHER_PACKAGE))
+    rankers = random.choice(list(machinery.find_components(
+        machinery.SCORE_PACKAGE))
+    filters = random.choice(list(machinery.find_components(
+        machinery.FILTER_PACKAGE))
+
+    return dict(
+        gatheringMethod = gather,
+        filteringMethods = filters,
+        rankingMethods = rankers,
+    )
 
 
 @app.route("/", methods=['GET'])
@@ -58,3 +74,25 @@ def options():
     "gatheringMethods": gatheringMethods,
     "filteringMethods": filteringMethods}
     return jsonify(options)
+
+
+@app.route("/evaluate", methods=['POST'])
+def evaluate():
+    uid = session['uid']
+    options = request.json['options']
+    webpage = request.json['webpage']
+    rating = request.json['rating']
+
+    mongo.db.evaluation.update(
+        dict(uid=uid, options=options, webpage=webpage),
+        {'$set': {'rankings.' + uid: rating}},
+        dict(upsert=True),
+    )
+
+@app.route("/evaluation")
+def evaluation():
+    if not 'uid' in session:
+        session['uid'] = uuid.uuid4().replace('-', '')
+    webpage = random_url()
+    options = random_options()
+    return send_file('templates/evaluate.html')
