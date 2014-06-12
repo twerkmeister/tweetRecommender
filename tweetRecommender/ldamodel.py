@@ -9,7 +9,13 @@ import logging
 import os.path
 import functools32
 
+LOG = logging.getLogger('tweetRecommender.query')
+
 MALLET_PATH = "/home/christian/mallet-2.0.7/bin/mallet"
+
+CORPUS_PATH = os.path.join(os.path.dirname(__file__), config["lda"]["corpus_path"])
+DICT_PATH = os.path.join(os.path.dirname(__file__), config["lda"]["dict_path"])
+MODEL_PATH = os.path.join(os.path.dirname(__file__), config["lda"]["model_path"])
 
 class MongoCorpus(object):
     def __init__(self, dictionary):
@@ -19,13 +25,14 @@ class MongoCorpus(object):
         for doc in subset():
             yield dictionary.doc2bow(tokenize(doc))
 
+
 @functools32.lru_cache() 
 def get_lda():
-    return models.LdaModel.load(config["lda"]["model_path"])
+    return models.LdaModel.load(MODEL_PATH)
     
 @functools32.lru_cache() 
 def get_dictionary(): #redundancy for scoring    
-    return create_dictionary(config["lda"]["dict_path"])
+    return create_dictionary(DICT_PATH)
 
 def subset():
     return mongo.db.sample_webpages_training.find()
@@ -77,14 +84,6 @@ def create_corpus(path, overwrite=False):
     return corpus
 
 if __name__ == '__main__':
-    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', 
-                        level=logging.INFO)
-
-    dict_path = config["lda"]["dict_path"]
-    corpus_path = config["lda"]["corpus_path"]
-    model_path = config["lda"]["model_path"]
-
-    dictionary = create_dictionary(dict_path)
-    corpus = create_corpus(corpus_path)
-
-    model = create_model_lda(dictionary, corpus, model_path)
+    dictionary = create_dictionary(DICT_PATH)
+    corpus = create_corpus(CORPUS_PATH)
+    model = create_model_lda(dictionary, corpus, MODEL_PATH)
