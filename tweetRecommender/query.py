@@ -82,18 +82,14 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
 
 def rank(tweets, score_funcs, webpage, limit):
     nvotes = len(score_funcs)
-    if nvotes > 1:
-        LOG.debug("Counting tweets..")
-        count = tweets.count()  #XXX ugh!
-        if not count:
-            LOG.warning("No tweets retrieved; abort.")
-            return []  # exit early
-        LOG.info("Counted %d tweets.", count)
-        window = count
-    else:
-        window = limit
+    LOG.debug("Counting tweets..")
+    count = tweets.count()  #XXX ugh!
+    if not count:
+        LOG.warning("No tweets retrieved; abort.")
+        return []  # exit early
+    LOG.info("Counted %d tweets.", count)
 
-    rankings = [Queue.PriorityQueue(window)
+    rankings = [[None] * count  # so we do not have to realloc memory
                 for _ in score_funcs]
     LOG.info("Scoring by %s..",
             ", ".join("%s.%s" % (s.__module__, s) for s, w in score_funcs))
@@ -102,27 +98,23 @@ def rank(tweets, score_funcs, webpage, limit):
 
     tweets_index = {}
     zip_score_rank = list(zip(score_funcs, rankings))
-    for tweet in tweets:
+    for idx, tweet in enumerate(tweets):
         key = tweet['tweet_id']
         tweets_index[key] = tweet #XXX minimize
         for score_func, ranking in zip_score_rank:
             score = score_func(tweet, webpage)
-            if not ranking.full():
-                ranking.put((score, key))
-            elif score > ranking.queue[0][0]:
-                ranking.get()
-                ranking.put((score, key))
+            ranking[idx] = (score, key)
 
     if nvotes == 1:
         LOG.info("Skipped voting;  monarchy.")
-        overall = rankings[0].queue
+        overall = rankings[0]
     else:
         LOG.debug("Voting..")
         overall = vote(rankings, weights)
 
     LOG.debug("Sorting..")
-    return [(score, tweets_index[tweet]) for score, tweet in
-            sorted(overall, key=operator.itemgetter(0), reverse=True)[:limit]]
+    result = sorted(overall, key=operator.itemgetter(0), reverse=True)[:limit]
+    return [(score, tweets_index[tweet]) for score, tweet in result]
 
 
 def _required_fields(funcs):
