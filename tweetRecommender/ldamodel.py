@@ -9,7 +9,10 @@ import logging
 import os.path
 import functools32
 
-LOG = logging.getLogger('tweetRecommender.query')
+LOG = logging.basicConfig(
+        level = logging.INFO,
+        format = "[%(levelname)s] %(message)s",
+    )
 
 MALLET_PATH = "/home/christian/mallet-2.0.7/bin/mallet"
 
