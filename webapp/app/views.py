@@ -1,13 +1,12 @@
-from tweetRecommender.query import run as recommend
+from tweetRecommender.query import run as recommend, get_webpage
 from tweetRecommender.mongo import mongo
-
-from tweetRecommender.query import SCORE_PACKAGE, GATHER_PACKAGE, FILTER_PACKAGE
-from tweetRecommender.machinery import load_component, find_components
-
-from tweetRecommender.query import get_webpage
+from tweetRecommender import machinery
 
 from app import app
-from flask import render_template, request, url_for, redirect, jsonify, send_file, session
+
+from flask import request, session
+from flask import render_template, redirect, send_file
+from flask import url_for, jsonify
 
 
 WEBPAGES_COLLECTION = 'sample_webpages'
@@ -16,7 +15,7 @@ LIMIT = 10
 
 
 def random_url():
-    return mongo.random(WEBPAGES_COLL)['url']
+    return mongo.random(WEBPAGES_COLLECTION)['url']
 
 
 @app.route("/", methods=['GET'])
@@ -52,9 +51,9 @@ def query():
 
 @app.route("/options")
 def options():
-    scoringMethods = list(find_components(SCORE_PACKAGE))
-    gatheringMethods = list(find_components(GATHER_PACKAGE))
-    filteringMethods = list(find_components(FILTER_PACKAGE))
+    scoringMethods = list(machinery.find_components(machinery.SCORE_PACKAGE))
+    gatheringMethods = list(machinery.find_components(machinery.GATHER_PACKAGE))
+    filteringMethods = list(machinery.find_components(machinery.FILTER_PACKAGE))
     options = {"rankingMethods": scoringMethods,
     "gatheringMethods": gatheringMethods,
     "filteringMethods": filteringMethods}
