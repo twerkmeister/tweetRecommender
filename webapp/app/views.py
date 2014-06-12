@@ -40,7 +40,7 @@ def query():
                            'sample_tweets', webpages_coll, limit)
         
         for score, tweet in result["tweets"]:
-            tweet.pop("_id")
+            tweet["_id"] = str(tweet["_id"])
 
     except Exception, e:
         import traceback; traceback.print_exc()
