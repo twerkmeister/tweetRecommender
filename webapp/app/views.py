@@ -78,7 +78,7 @@ def options():
 
 @app.route("/evaluate", methods=['POST'])
 def evaluate():
-    uid = session['uid']
+    uid = session.get('uid', '')
     options = request.json['options']
     webpage = request.json['webpage']
     rating = request.json['rating']
