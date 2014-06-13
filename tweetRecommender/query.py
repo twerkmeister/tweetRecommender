@@ -5,25 +5,17 @@ import argparse
 import itertools
 import logging
 import operator
-import Queue
 
 from tweetRecommender.config import config
-from tweetRecommender.machinery import load_component, find_components
 from tweetRecommender.mongo import mongo
 from tweetRecommender.util import set_vars
 from tweetRecommender.voting import vote
+from tweetRecommender import machinery
 
 import six
 
 
-GATHER_PACKAGE = 'tweetRecommender.gather'
-GATHER_METHOD = 'gather'
-SCORE_PACKAGE = 'tweetRecommender.rank'
-SCORE_METHOD = 'score'
-SCORE_INFO_FIELDS = 'fields'
 SCORE_WEIGHT_SEP = ':'
-FILTER_PACKAGE = 'tweetRecommender.filter'
-FILTER_METHOD = 'filter'
 
 cfg = config['query']
 GATHER_MODULE = cfg['gather']
@@ -82,18 +74,14 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
 
 def rank(tweets, score_funcs, webpage, limit):
     nvotes = len(score_funcs)
-    if nvotes > 1:
-        LOG.debug("Counting tweets..")
-        count = tweets.count()  #XXX ugh!
-        if not count:
-            LOG.warning("No tweets retrieved; abort.")
-            return []  # exit early
-        LOG.info("Counted %d tweets.", count)
-        window = count
-    else:
-        window = limit
+    LOG.debug("Counting tweets..")
+    count = tweets.count()  #XXX ugh!
+    if not count:
+        LOG.warning("No tweets retrieved; abort.")
+        return []  # exit early
+    LOG.info("Counted %d tweets.", count)
 
-    rankings = [Queue.PriorityQueue(window)
+    rankings = [[None] * count  # so we do not have to realloc memory
                 for _ in score_funcs]
     LOG.info("Scoring by %s..",
             ", ".join("%s.%s" % (s.__module__, s) for s, w in score_funcs))
@@ -102,33 +90,29 @@ def rank(tweets, score_funcs, webpage, limit):
 
     tweets_index = {}
     zip_score_rank = list(zip(score_funcs, rankings))
-    for tweet in tweets:
+    for idx, tweet in enumerate(tweets):
         key = tweet['tweet_id']
         tweets_index[key] = tweet #XXX minimize
         for score_func, ranking in zip_score_rank:
             score = score_func(tweet, webpage)
-            if not ranking.full():
-                ranking.put((score, key))
-            elif score > ranking.queue[0][0]:
-                ranking.get()
-                ranking.put((score, key))
+            ranking[idx] = (score, key)
 
     if nvotes == 1:
         LOG.info("Skipped voting;  monarchy.")
-        overall = rankings[0].queue
+        overall = rankings[0]
     else:
         LOG.debug("Voting..")
         overall = vote(rankings, weights)
 
     LOG.debug("Sorting..")
-    return [(score, tweets_index[tweet]) for score, tweet in
-            sorted(overall, key=operator.itemgetter(0), reverse=True)[:limit]]
+    result = sorted(overall, key=operator.itemgetter(0), reverse=True)[:limit]
+    return [(score, tweets_index[tweet]) for score, tweet in result]
 
 
 def _required_fields(funcs):
     fields = set()
     for func in funcs:
-        fields.update(getattr(func, SCORE_INFO_FIELDS))
+        fields.update(getattr(func, machinery.SCORE_INFO_FIELDS))
     return fields
 
 
@@ -138,7 +122,8 @@ def run(url, gatherer, rankers, filters,
     components and the tweets/webpages collection.
 
     """
-    gather_func = load_component(GATHER_PACKAGE, gatherer, GATHER_METHOD)
+    gather_func = machinery.load_component(
+            machinery.GATHER_PACKAGE, gatherer, machinery.GATHER_METHOD)
 
     # backwards compat
     if isinstance(rankers, six.string_types):
@@ -146,10 +131,12 @@ def run(url, gatherer, rankers, filters,
     if len(rankers[0]) != 2:
         rankers = [(ranker, 1) for ranker in rankers]
     score_funcs = [
-            (load_component(SCORE_PACKAGE, ranker, SCORE_METHOD), weight)
+            (machinery.load_component(
+                machinery.SCORE_PACKAGE, ranker, machinery.SCORE_METHOD), weight)
             for ranker, weight in rankers]
 
-    filter_funcs = [load_component(FILTER_PACKAGE, filter_, FILTER_METHOD)
+    filter_funcs = [machinery.load_component(machinery.FILTER_PACKAGE, filter_,
+                                             machinery.FILTER_METHOD)
                     for filter_ in filters]
 
     tweets_coll = mongo.coll(tweets_ref)
@@ -169,14 +156,14 @@ def main(args=None):
             help="News article.")
     parser.add_argument('--gather', default=GATHER_MODULE, metavar='COMPONENT',
             help="%s/*.py, default: %%(default)s" %
-            (GATHER_PACKAGE.replace('.', '/'),))
+            (machinery.GATHER_PACKAGE.replace('.', '/'),))
     parser.add_argument('--rank', action='append', metavar='COMPONENT',
             help="%s/*.py, defaults: %s" %
-            (SCORE_PACKAGE.replace('.', '/'), ', '.join(SCORE_MODULES)))
+            (machinery.SCORE_PACKAGE.replace('.', '/'), ', '.join(SCORE_MODULES)))
     parser.add_argument('--filter', action='append', dest='filters',
             metavar='COMPONENT', default=[],
             help="%s/*.py, defaults: %s" %
-            (FILTER_PACKAGE.replace('.', '/'), ', '.join(FILTER_MODULES)))
+            (machinery.FILTER_PACKAGE.replace('.', '/'), ', '.join(FILTER_MODULES)))
     parser.add_argument('--no-filter', action='store_true',
             help="disable all filters")
     parser.add_argument('--tweets', metavar='COLLECTION',
@@ -212,7 +199,7 @@ def main(args=None):
                           ("filter", FILTER_PACKAGE),
                           ("rank", SCORE_PACKAGE)]:
             print("  --%s:" % flag)
-            for component in find_components(pkg):
+            for component in machinery.find_components(pkg):
                 print("\t%s" % component)
         return 0
     # cannot set as default= because action=append adds to defaults
@@ -246,10 +233,10 @@ def main(args=None):
         return 2
 
     digits = len(str(int(tweets[0][0])))
-    score_format = ".2f" if len(args.rank) == 1 else "0%sd" % digits
+    score_format = ".3f" if len(args.rank) == 1 else "0%sd" % digits
     score_format = ("%%%s," if args.raw else "[%%%s] ") % score_format
-    tweet_format = (u"{tweet_id},{user[screen_name]},{text}" if args.raw
-                    else u"@{user[screen_name]}: {text}")
+    tweet_format = (u"{tweet_id},{user[screen_name]},{text!r}" if args.raw
+                    else u"@{user[screen_name]}: {text!r}")
 
     for score, tweet in tweets:
         tweet['text'] = tweet['text'].encode('ascii', 'ignore')
