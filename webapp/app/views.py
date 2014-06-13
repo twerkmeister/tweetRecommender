@@ -21,11 +21,11 @@ def random_url():
 
 def random_options():
     gather = random.choice(list(machinery.find_components(
-        machinery.GATHER_PACKAGE))
+        machinery.GATHER_PACKAGE)))
     rankers = random.choice(list(machinery.find_components(
-        machinery.SCORE_PACKAGE))
+        machinery.SCORE_PACKAGE)))
     filters = random.choice(list(machinery.find_components(
-        machinery.FILTER_PACKAGE))
+        machinery.FILTER_PACKAGE)))
 
     return dict(
         gatheringMethod = gather,
@@ -58,7 +58,7 @@ def query():
                            TWEETS_COLLECTION, WEBPAGES_COLLECTION, LIMIT)
 
         for score, tweet in result["tweets"]:
-            tweet.pop("_id")
+            tweet["_id"] = str(tweet["_id"])
 
     except Exception, e:
         import traceback; traceback.print_exc()
