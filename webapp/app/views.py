@@ -21,11 +21,11 @@ def random_url():
 
 def random_options():
     gather = random.choice(list(machinery.find_components(
-        machinery.GATHER_PACKAGE))
+        machinery.GATHER_PACKAGE)))
     rankers = random.choice(list(machinery.find_components(
-        machinery.SCORE_PACKAGE))
+        machinery.SCORE_PACKAGE)))
     filters = random.choice(list(machinery.find_components(
-        machinery.FILTER_PACKAGE))
+        machinery.FILTER_PACKAGE)))
 
     return dict(
         gatheringMethod = gather,
