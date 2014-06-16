@@ -26,5 +26,5 @@ class MongoConnector:
     def random(self, coll):
         coll = self.coll(coll)
         count = coll.count() - 1
-        item = coll.find().skip(randint(0, random_max)).limit(1)[0]
+        item = coll.find().skip(randint(0, count)).limit(1)[0]
         return item

@@ -10,6 +10,8 @@ from flask import request, session
 from flask import render_template, redirect, send_file
 from flask import url_for, jsonify
 
+import uuid
+
 
 WEBPAGES_COLLECTION = 'sample_webpages'
 TWEETS_COLLECTION = 'sample_tweets'
@@ -22,10 +24,10 @@ def random_url():
 def random_options():
     gather = random.choice(list(machinery.find_components(
         machinery.GATHER_PACKAGE)))
-    rankers = random.choice(list(machinery.find_components(
-        machinery.SCORE_PACKAGE)))
-    filters = random.choice(list(machinery.find_components(
-        machinery.FILTER_PACKAGE)))
+    rankers = [random.choice(list(machinery.find_components(
+        machinery.SCORE_PACKAGE)))]
+    filters = [random.choice(list(machinery.find_components(
+        machinery.FILTER_PACKAGE)))]
 
     return dict(
         gatheringMethod = gather,
@@ -36,7 +38,7 @@ def random_options():
 
 @app.route("/", methods=['GET'])
 def index():
-    return send_file('templates/index.html')
+    return send_file('static/html/index.html')
 
 @app.route("/url", methods=['GET'])
 def url():
@@ -48,9 +50,11 @@ def query():
     gatheringMethod = request.json["gatheringMethod"]
     filteringMethods = request.json["filteringMethods"]
     rankingMethods = request.json["rankingMethods"]
-    action = request.json["action"]
     url = request.json["url"]
 
+    return jsonify(run_query(url, gatheringMethod, rankingMethods, filteringMethods))
+
+def run_query(url, gatheringMethod, rankingMethods, filteringMethods):
     result = {"tweets": []}
     try:
         result["tweets"] = recommend(url, gatheringMethod, rankingMethods, filteringMethods,
@@ -63,7 +67,7 @@ def query():
     except Exception, e:
         import traceback; traceback.print_exc()
     finally:
-        return jsonify(result)
+        return result
 
 @app.route("/options")
 def options():
@@ -92,7 +96,19 @@ def evaluate():
 @app.route("/evaluation")
 def evaluation():
     if not 'uid' in session:
-        session['uid'] = uuid.uuid4().replace('-', '')
+        session['uid'] = str(uuid.uuid4()).replace('-', '')
     webpage = random_url()
     options = random_options()
-    return send_file('templates/evaluate.html')
+    return send_file('static/html/evaluate.html')
+
+@app.route("/evaluation/next")
+def evaluation_next():
+    if not 'uid' in session:
+        return jsonify({})
+    else:
+        url = random_url()
+        options = random_options()
+        print options
+        return jsonify(run_query(url, options["gatheringMethod"], options["rankingMethods"], options["filteringMethods"]))
+
+
