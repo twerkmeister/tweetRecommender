@@ -103,6 +103,10 @@ input[type="checkbox"] {
   margin-top: 5px;
 }
 
+.tweet.highlighted {
+  background: #ccc;
+}
+
 /* result.html css 
 ---------------------------------------------------- */
 #main {     

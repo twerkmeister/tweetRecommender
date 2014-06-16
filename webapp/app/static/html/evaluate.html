@@ -12,42 +12,6 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.syphon/0.4.1/backbone.syphon.min.js"></script>
     <script src="http://cdn.craig.is/js/mousetrap/mousetrap.min.js?9d308"></script>
 
-    <script type="text/template" id="optionset-template">
-      <div class="optionset">
-        <form>
-          <h4>gathering</h4>
-          <select name="gatheringMethod">
-          <% gatheringMethods.forEach(function (gatheringMethod) { %>
-            <option name="gatheringMethods[<%= gatheringMethod %>]"><%= gatheringMethod %></option>
-          <% }) %>
-          </select>
-          <h4>filtering</h4>
-          <% filteringMethods.forEach(function (filteringMethod) { %>
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" name="filteringMethods[<%= filteringMethod %>]" value="<%= filteringMethod %>">
-                <%= filteringMethod %>
-              </label>
-            </div>
-          <% }) %>
-          <h4>ranking</h4>
-          <% rankingMethods.forEach(function (rankingMethod) { %>
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" name="rankingMethods[<%= rankingMethod %>]" value="<%= rankingMethod %>">
-                <%= rankingMethod %>
-              </label>
-            </div>
-          <% }) %>
-        </form>
-      </div>
-    </script>
-
-    <script type="text/template" id="resultlist-template">
-      <div class="resultlist"></div>
-      // methods, precision, recall, #tweets processed
-    </script>
-
     <script type="text/template" id ="tweet-template">
         <div class="tweet" data-id=<%= tweet_id %>>
         <div class="tweet-header">
@@ -81,14 +45,8 @@
 
       <!-- Begin page content -->
       <div class="container">
-        <div class="search">
-          <h3>Find relevant tweets for news</h3>
-          <input type="text" id="searchbar" placeholder="Insert url..." class="input-large" name="url" />
-          <div class="center">
-            <button type="submit" id="searchbutton" class="btn" name="action" value="search">Search</button>
-            <button type="submit" id="randombutton" class="btn" name="action" value="random">Random article</button>
-            <button type="submit" id="advancedbutton" class="btn" name="action" value="advanced">Options</button>
-          </div>
+        <div class="evaluation">
+          <h3>Please rate the relevance of the tweets with respect to the given news article</h3>
         </div>
       </div>
 
@@ -100,6 +58,6 @@
         <p class="muted credit">Masterproject summer term 2014 at <a href="https://www.hpi.uni-potsdam.de/willkommen.html" target="_blank">HPI Potsdam</a> "Finding relevant tweets for news". Find us <a href="https://github.com/lesnail/tweetRecommender" target="_blank">@github</a>.</p>
       </div>
     </div>
-  <script type="text/javascript" src="static/js/main.js"></script>
+  <script type="text/javascript" src="static/js/evaluation.js"></script>
   </body>
 </html>
