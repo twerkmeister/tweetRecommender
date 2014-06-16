@@ -1,3 +1,4 @@
+from random import randint
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from bson.objectid import ObjectId
@@ -21,3 +22,9 @@ class MongoConnector:
         else:
             raise TypeError(
                 "must be either pymongo.Collection or collection name")
+
+    def random(self, coll):
+        coll = self.coll(coll)
+        count = coll.count() - 1
+        item = coll.find().skip(randint(0, count)).limit(1)[0]
+        return item
