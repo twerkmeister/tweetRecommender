@@ -3,14 +3,14 @@
 from __future__ import print_function
 import argparse
 import itertools
-import logging
 import operator
 
 from tweetRecommender.config import config
 from tweetRecommender.mongo import mongo
-from tweetRecommender.util import set_vars, measured, repr_
+from tweetRecommender.util import set_vars, repr_
 from tweetRecommender.voting import vote
 from tweetRecommender import machinery
+from tweetRecommender import log
 
 import six
 
@@ -27,7 +27,7 @@ WEBPAGES_COLLECTION = 'webpages'
 TWEETS_SUBSAMPLE = 'sample_tweets'
 WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
 
-LOG = logging.getLogger('tweetRecommender.query')
+LOG = log.getLogger('tweetRecommender.query')
 
 def get_webpage(uri, webpages_coll):
     webpage = webpages_coll.find_one(dict(url=uri))
@@ -83,7 +83,7 @@ def rank(tweets, score_funcs, webpage, limit):
 
     tweets_index = {}
     zip_score_rank = list(zip(score_funcs, rankings))
-    with measured(LOG, "Scoring tweets"):
+    with LOG.measured("Scoring tweets"):
         for tweet in tweets:
             key = tweet['tweet_id']
             tweets_index[key] = tweet #XXX minimize
@@ -96,7 +96,7 @@ def rank(tweets, score_funcs, webpage, limit):
         overall = rankings[0]
     else:
         LOG.debug("Voting..")
-        with measured(LOG, "Voting"):
+        with LOG.measured("Voting"):
             overall = vote(rankings, weights)
 
     LOG.debug("Sorting..")
@@ -203,8 +203,8 @@ def main(args=None):
     if not args.filters and not args.no_filter:
         args.filters = FILTER_MODULES
 
-    logging.basicConfig(
-        level = logging.INFO,
+    log.basicConfig(
+        level = log.INFO,
         format = "[%(levelname)s] %(message)s",
     )
 
