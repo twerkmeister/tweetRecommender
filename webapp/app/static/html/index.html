@@ -6,10 +6,11 @@
     <link href="/static/css/custom.css" rel="stylesheet">
     <script src="http://code.jquery.com/jquery-latest.js"></script>
     <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
-    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.syphon/0.4.1/backbone.syphon.min.js"></script>
+    <script src="http://cdn.craig.is/js/mousetrap/mousetrap.min.js?9d308"></script>
 
     <script type="text/template" id="optionset-template">
       <div class="optionset">
@@ -99,147 +100,6 @@
         <p class="muted credit">Masterproject summer term 2014 at <a href="https://www.hpi.uni-potsdam.de/willkommen.html" target="_blank">HPI Potsdam</a> "Finding relevant tweets for news". Find us <a href="https://github.com/lesnail/tweetRecommender" target="_blank">@github</a>.</p>
       </div>
     </div>
-  <script type="text/javascript">
-    $(function () {
-
-      var tweetTemplate = _.template($("#tweet-template").html());
-      var DRAG_OFFSET = 100;
-      var processRanking = function(data, textStatus, jqXHR) {
-          console.log(data.tweets.length);
-          data.tweets.forEach(function (tweetObj, i) {
-            var tweet = tweetObj[1];
-            tweet.score = tweetObj[0];
-            
-            $(".search").append(tweetTemplate(tweet));
-          });
-          $("div.tweet").draggable({
-            axis: "x",
-            scroll: false,
-            cancel: "p.tweet-body",
-            start: function(event, ui) {
-                this.originalX = this.offsetLeft;
-            },
-            stop: function(event, ui) {
-                if (!this.reverted) {
-                    var relevant = this.offsetLeft > this.originalX;
-                    $.ajax("evaluate", {
-                        type: "POST",
-                        contentType: "application/json",
-                        dataType: "json",
-                        data: JSON.stringify({
-                            url: $("#searchbar")[0].value,
-                            tweet: this.dataset.id,
-                            relevant: relevant,
-                            options: options.serialize(),
-                        }),
-                    });
-                    $(this).fadeOut(300, function(){
-                        $(this).css({visibility: 'hidden', display:'block'})
-                               .slideUp(200);
-                    });
-                }
-            },
-            revert: function() {
-                var that = this[0];
-                return that.reverted =
-                    Math.abs(that.originalX - that.offsetLeft) < DRAG_OFFSET;
-            },
-            revertDuration: 200,
-          });
-        }
-      
-
-      var OptionSetView = Backbone.View.extend({
-
-        template : _.template($("#optionset-template").html()),
-
-        initialize : function (options) {
-          this.data = options.data;
-        },
-
-        render : function () {
-
-          this.$el.html(this.template(this.data));
-
-          //setting defaults
-          this.$("option[name=\"gatheringMethods[terms]\"]")[0].selected = true
-          this.$("input[name=\"rankingMethods[text_overlap]\"]").prop("checked", true);
-          this.$("input[name=\"filteringMethods[expected_time]\"]").prop("checked", true);
-
-          return this;
-        },
-
-        toggle : function () {
-          this.$el.toggle();
-        },
-
-
-        foldCheckboxes : function (options, key) {
-          return _.transform(
-            options[key], function (result, value, key) { 
-              if (value) 
-                result.push(key); 
-            }, []
-          );
-        },
-
-        serialize : function () {
-          var options = Backbone.Syphon.serialize(this);
-          options.filteringMethods = this.foldCheckboxes(options, "filteringMethods");
-          options.rankingMethods = this.foldCheckboxes(options, "rankingMethods");
-          return options;
-        },
-
-
-        query : function () {
-
-          var options = this.serialize();
-          options["url"] = $("#searchbar")[0].value;
-          options["action"] = "search";
-
-          return $.ajax("query", {
-            type: "POST",
-            contentType: "application/json",
-            dataType: "json",
-            data: JSON.stringify(options)
-          });
-        }
-
-      });
-
-      $.ajax("options").done(function(data) {
-
-        var view = new OptionSetView({
-          data : data
-        });
-        $(".search").append(view.render().el);
-        $(".optionset").toggle();
-
-
-
-        $("#searchbutton").click(function() {
-
-          $(".tweet").remove();
-          view.query().done(processRanking);
-
-        });
-
-        $("#randombutton").click(function() {
-          $.ajax("url").done(function(data){
-            $("#searchbar")[0].value=data["url"];
-          });
-        });
-
-
-        $("#advancedbutton").click(function(){
-          $(".optionset").toggle();
-        });
-
-        window.options = view;
-
-      });
-
-    });
-  </script>
+  <script type="text/javascript" src="static/js/main.js"></script>
   </body>
 </html>

@@ -40,6 +40,7 @@ body {
   margin: 0 auto;
 }
 
+
 #searchbar {
   width: 90%;
   height: 30px;
@@ -50,6 +51,7 @@ body {
   width: 50%;
   margin: 0 auto;
 }
+
 
 /* Custom page CSS
 -------------------------------------------------- */
@@ -101,6 +103,10 @@ input[type="checkbox"] {
 
 .tweet-body {
   margin-top: 5px;
+}
+
+.tweet.highlighted {
+  background: #ccc;
 }
 
 /* result.html css 
