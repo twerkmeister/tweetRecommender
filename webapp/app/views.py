@@ -1,8 +1,9 @@
 import random
 
-from tweetRecommender.query import run as recommend, get_webpage
+from tweetRecommender.query import run as recommend
 from tweetRecommender.mongo import mongo
 from tweetRecommender import machinery
+from tweetRecommender.query import get_webpage
 
 from app import app
 
@@ -55,8 +56,9 @@ def query():
     return jsonify(run_query(url, gatheringMethod, rankingMethods, filteringMethods))
 
 def run_query(url, gatheringMethod, rankingMethods, filteringMethods):
-    result = {"tweets": []}
+    result = {"webpage": "", "tweets": []}
     try:
+        result["webpage"] = get_webpage(url, mongo.coll(WEBPAGES_COLLECTION))["content"].encode('utf-8')
         result["tweets"] = recommend(url, gatheringMethod, rankingMethods, filteringMethods,
                            ['user.screen_name', 'created_at', 'text'],
                            TWEETS_COLLECTION, WEBPAGES_COLLECTION, LIMIT)
@@ -83,32 +85,30 @@ def options():
 @app.route("/evaluate", methods=['POST'])
 def evaluate():
     uid = session.get('uid', '')
+    tweet = request.json['tweetId']
     options = request.json['options']
-    webpage = request.json['webpage']
+    webpage = request.json['url']
     rating = request.json['rating']
 
     mongo.db.evaluation.update(
-        dict(uid=uid, options=options, webpage=webpage),
+        dict(tweet=tweet, uid=uid, options=options, webpage=webpage),
         {'$set': {'rankings.' + uid: rating}},
-        dict(upsert=True),
+        upsert=True
     )
+    return jsonify({"success": 1})
 
 @app.route("/evaluation")
 def evaluation():
     if not 'uid' in session:
         session['uid'] = str(uuid.uuid4()).replace('-', '')
-    webpage = random_url()
-    options = random_options()
     return send_file('static/html/evaluate.html')
 
 @app.route("/evaluation/next")
 def evaluation_next():
-    if not 'uid' in session:
-        return jsonify({})
-    else:
-        url = random_url()
-        options = random_options()
-        print options
-        return jsonify(run_query(url, options["gatheringMethod"], options["rankingMethods"], options["filteringMethods"]))
+    url = random_url()
+    options = random_options()
+    results = run_query(url, options["gatheringMethod"], options["rankingMethods"], options["filteringMethods"])
+    response = dict({"options": options}, **dict({"url": url}, **results))
+    return jsonify(response)
 
 
