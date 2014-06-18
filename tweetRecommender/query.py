@@ -74,30 +74,22 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
 
 def rank(tweets, score_funcs, webpage, limit):
     nvotes = len(score_funcs)
-    LOG.debug("Counting tweets..")
-    with measured(LOG, "Counting tweets"):
-        count = tweets.count()  #XXX ugh!
-    if not count:
-        LOG.warning("No tweets retrieved; abort.")
-        return []  # exit early
-    LOG.info("Counted %d tweets.", count)
-
-    rankings = [[None] * count  # so we do not have to realloc memory
+    rankings = [[]  # so we do not have to realloc memory
                 for _ in score_funcs]
+
     LOG.info("Scoring by %s..",
             ", ".join("%s.%s" % (s.__module__, s) for s, w in score_funcs))
-
     score_funcs, weights = zip(*score_funcs)
 
     tweets_index = {}
     zip_score_rank = list(zip(score_funcs, rankings))
     with measured(LOG, "Scoring tweets"):
-        for idx, tweet in enumerate(tweets):
+        for tweet in tweets:
             key = tweet['tweet_id']
             tweets_index[key] = tweet #XXX minimize
             for score_func, ranking in zip_score_rank:
                 score = score_func(tweet, webpage)
-                ranking[idx] = (score, key)
+                ranking.append((score, key))
 
     if nvotes == 1:
         LOG.debug("Skipped voting;  monarchy.")
