@@ -8,7 +8,7 @@ import operator
 
 from tweetRecommender.config import config
 from tweetRecommender.mongo import mongo
-from tweetRecommender.util import set_vars
+from tweetRecommender.util import set_vars, repr_
 from tweetRecommender.voting import vote
 from tweetRecommender import machinery
 
@@ -55,7 +55,7 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
     if find_criteria is None:
         raise TypeError(
             "gathering step did not yield result criteria; missing return?")
-    LOG.info("Criteria: %s", find_criteria)
+    LOG.info("Criteria: %s", repr_(find_criteria))
 
     for filter_func in filter_funcs:
         LOG.info("Filtering query with %s.%s..",
