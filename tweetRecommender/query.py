@@ -3,14 +3,14 @@
 from __future__ import print_function
 import argparse
 import itertools
-import logging
 import operator
 
 from tweetRecommender.config import config
 from tweetRecommender.mongo import mongo
-from tweetRecommender.util import set_vars
+from tweetRecommender.util import set_vars, repr_
 from tweetRecommender.voting import vote
 from tweetRecommender import machinery
+from tweetRecommender import log
 
 import six
 
@@ -27,7 +27,7 @@ WEBPAGES_COLLECTION = 'webpages'
 TWEETS_SUBSAMPLE = 'sample_tweets'
 WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
 
-LOG = logging.getLogger('tweetRecommender.query')
+LOG = log.getLogger('tweetRecommender.query')
 
 def get_webpage(uri, webpages_coll):
     webpage = webpages_coll.find_one(dict(url=uri))
@@ -55,7 +55,7 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
     if find_criteria is None:
         raise TypeError(
             "gathering step did not yield result criteria; missing return?")
-    LOG.info("Criteria: %s", find_criteria)
+    LOG.info("Criteria: %s", repr_(find_criteria))
 
     for filter_func in filter_funcs:
         LOG.info("Filtering query with %s.%s..",
@@ -74,35 +74,30 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
 
 def rank(tweets, score_funcs, webpage, limit):
     nvotes = len(score_funcs)
-    LOG.debug("Counting tweets..")
-    count = tweets.count()  #XXX ugh!
-    if not count:
-        LOG.warning("No tweets retrieved; abort.")
-        return []  # exit early
-    LOG.info("Counted %d tweets.", count)
-
-    rankings = [[None] * count  # so we do not have to realloc memory
+    rankings = [[]  # so we do not have to realloc memory
                 for _ in score_funcs]
+
     LOG.info("Scoring by %s..",
             ", ".join("%s.%s" % (s.__module__, s) for s, w in score_funcs))
-
     score_funcs, weights = zip(*score_funcs)
 
     tweets_index = {}
     zip_score_rank = list(zip(score_funcs, rankings))
-    for idx, tweet in enumerate(tweets):
-        key = tweet['tweet_id']
-        tweets_index[key] = tweet #XXX minimize
-        for score_func, ranking in zip_score_rank:
-            score = score_func(tweet, webpage)
-            ranking[idx] = (score, key)
+    with LOG.measured("Scoring tweets"):
+        for tweet in tweets:
+            key = tweet['tweet_id']
+            tweets_index[key] = tweet #XXX minimize
+            for score_func, ranking in zip_score_rank:
+                score = score_func(tweet, webpage)
+                ranking.append((score, key))
 
     if nvotes == 1:
-        LOG.info("Skipped voting;  monarchy.")
+        LOG.debug("Skipped voting;  monarchy.")
         overall = rankings[0]
     else:
         LOG.debug("Voting..")
-        overall = vote(rankings, weights)
+        with LOG.measured("Voting"):
+            overall = vote(rankings, weights)
 
     LOG.debug("Sorting..")
     result = sorted(overall, key=operator.itemgetter(0), reverse=True)[:limit]
@@ -208,8 +203,8 @@ def main(args=None):
     if not args.filters and not args.no_filter:
         args.filters = FILTER_MODULES
 
-    logging.basicConfig(
-        level = logging.INFO,
+    log.basicConfig(
+        level = log.INFO,
         format = "[%(levelname)s] %(message)s",
     )
 
