@@ -8,7 +8,7 @@ import operator
 
 from tweetRecommender.config import config
 from tweetRecommender.mongo import mongo
-from tweetRecommender.util import set_vars, repr_
+from tweetRecommender.util import set_vars, measured, repr_
 from tweetRecommender.voting import vote
 from tweetRecommender import machinery
 
@@ -75,7 +75,8 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
 def rank(tweets, score_funcs, webpage, limit):
     nvotes = len(score_funcs)
     LOG.debug("Counting tweets..")
-    count = tweets.count()  #XXX ugh!
+    with measured(LOG, "Counting tweets"):
+        count = tweets.count()  #XXX ugh!
     if not count:
         LOG.warning("No tweets retrieved; abort.")
         return []  # exit early
@@ -90,19 +91,21 @@ def rank(tweets, score_funcs, webpage, limit):
 
     tweets_index = {}
     zip_score_rank = list(zip(score_funcs, rankings))
-    for idx, tweet in enumerate(tweets):
-        key = tweet['tweet_id']
-        tweets_index[key] = tweet #XXX minimize
-        for score_func, ranking in zip_score_rank:
-            score = score_func(tweet, webpage)
-            ranking[idx] = (score, key)
+    with measured(LOG, "Scoring tweets"):
+        for idx, tweet in enumerate(tweets):
+            key = tweet['tweet_id']
+            tweets_index[key] = tweet #XXX minimize
+            for score_func, ranking in zip_score_rank:
+                score = score_func(tweet, webpage)
+                ranking[idx] = (score, key)
 
     if nvotes == 1:
-        LOG.info("Skipped voting;  monarchy.")
+        LOG.debug("Skipped voting;  monarchy.")
         overall = rankings[0]
     else:
         LOG.debug("Voting..")
-        overall = vote(rankings, weights)
+        with measured(LOG, "Voting"):
+            overall = vote(rankings, weights)
 
     LOG.debug("Sorting..")
     result = sorted(overall, key=operator.itemgetter(0), reverse=True)[:limit]

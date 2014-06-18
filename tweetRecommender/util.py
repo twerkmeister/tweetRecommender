@@ -1,4 +1,6 @@
 import argparse
+import contextlib
+import timeit
 import repr as reprlib
 
 
@@ -8,6 +10,14 @@ def set_vars(**varz):
             for var, value in varz.items():
                 setattr(namespace, var, value)
     return SetVarsAction
+
+
+@contextlib.contextmanager
+def measured(log, action):
+    start_time = timeit.default_timer()
+    yield
+    end_time = timeit.default_timer()
+    log.info("%s took %.2fs.", action, end_time - start_time)
 
 
 class Repr(reprlib.Repr):
