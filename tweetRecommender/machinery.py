@@ -22,7 +22,7 @@ def find_components(package):
           yield name
 
 def get_display_name(package, module):
-  display_name = modulel
+  display_name = module
   try:
     display_name = load_component(package, module, "DISPLAY_NAME")
   except AttributeError:
