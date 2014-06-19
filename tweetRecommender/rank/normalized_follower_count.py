@@ -1,5 +1,7 @@
 from __future__ import division
 
+DISPLAY_NAME = "User popularity"
+
 def score(tweet, webpage):
     return tweet["user"]["followers_count"] / tweet["user"]["statuses_count"]
 

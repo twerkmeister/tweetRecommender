@@ -5,6 +5,8 @@ import functools32
 from tweetRecommender.mongo import mongo
 from tweetRecommender.tokenize import tokenize
    
+DISPLAY_NAME = "Text similarity"
+
 LANGUAGE_COLLECTION = 'sample_tweets'
 
 def score(tweet, webpage):

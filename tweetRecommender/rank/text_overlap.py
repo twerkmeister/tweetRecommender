@@ -2,6 +2,8 @@ from __future__ import division
 
 from tweetRecommender.tokenize import tokenize
 
+DISPLAY_NAME = "Term overlap"
+
 def score(tweet, webpage):
     tweet_terms = set(tweet['terms'])
     news_terms = set(tokenize(webpage['content'].encode('utf-8')))

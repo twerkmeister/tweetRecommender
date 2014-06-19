@@ -18,15 +18,17 @@
           <h4>gathering</h4>
           <select name="gatheringMethod">
           <% gatheringMethods.forEach(function (gatheringMethod) { %>
-            <option name="gatheringMethods[<%= gatheringMethod %>]"><%= gatheringMethod %></option>
+            <option name="gatheringMethods[<%= gatheringMethod[0] %>]" value="<%= gatheringMethod[0] %>">
+              <%= gatheringMethod[1] %>
+            </option>
           <% }) %>
           </select>
           <h4>filtering</h4>
           <% filteringMethods.forEach(function (filteringMethod) { %>
             <div class="checkbox">
               <label>
-                <input type="checkbox" name="filteringMethods[<%= filteringMethod %>]" value="<%= filteringMethod %>">
-                <%= filteringMethod %>
+                <input type="checkbox" name="filteringMethods[<%= filteringMethod[0] %>]" value="<%= filteringMethod[0] %>">
+                <%= filteringMethod[1] %>
               </label>
             </div>
           <% }) %>
@@ -34,8 +36,8 @@
           <% rankingMethods.forEach(function (rankingMethod) { %>
             <div class="checkbox">
               <label>
-                <input type="checkbox" name="rankingMethods[<%= rankingMethod %>]" value="<%= rankingMethod %>">
-                <%= rankingMethod %>
+                <input type="checkbox" name="rankingMethods[<%= rankingMethod[0] %>]" value="<%= rankingMethod[0] %>">
+                <%= rankingMethod[1] %>
               </label>
             </div>
           <% }) %>

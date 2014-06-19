@@ -19,4 +19,5 @@ def find_components(package):
     modules = pkgutil.iter_modules(importlib.import_module(package).__path__)
     for module_loader, name, ispkg in modules:
         if not ispkg:
-            yield name
+            display_name = load_component(package, name, "DISPLAY_NAME")
+            yield (name, display_name)

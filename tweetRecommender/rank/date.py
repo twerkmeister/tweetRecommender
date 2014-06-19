@@ -1,6 +1,8 @@
 from __future__ import division
 from math import *
 
+DISPLAY_NAME = "Proximity to publishing date"
+
 SECONDS_TO_DAYS_FACTOR=(1/(3600*24))
 DEFAULT_SIGMA=43
 DEFAULT_M=5.7

@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+DISPLAY_NAME = "Expected time"
+
 STANDARD_DEVIATION_HOURS = 43
 STANDARD_EXPECTATION = 6
 _SHIFT = timedelta(hours = STANDARD_EXPECTATION)

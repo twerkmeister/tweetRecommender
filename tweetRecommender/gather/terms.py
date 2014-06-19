@@ -4,6 +4,8 @@ from tweetRecommender.tokenize import get_terms
 
 import bson.code
 
+DISPLAY_NAME = "Term matching"
+
 TRESHOLD = 4
 CLAUSE = '''
 function() {

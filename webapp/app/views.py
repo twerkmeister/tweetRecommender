@@ -31,9 +31,9 @@ def random_options():
         machinery.FILTER_PACKAGE)))]
 
     return dict(
-        gatheringMethod = gather,
-        filteringMethods = filters,
-        rankingMethods = rankers,
+        gatheringMethod = gather[0],
+        filteringMethods = [f[0] for f in filters],
+        rankingMethods = [r[0] for r in rankers],
     )
 
 

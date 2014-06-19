@@ -6,6 +6,8 @@ import functools32
 
 from gensim import matutils
 
+DISPLAY_NAME = "Topic similarity"
+
 #http://stackoverflow.com/questions/22433884/python-gensim-how-to-calculate-document-similarity-using-the-lda-model   
 def score(tweet, webpage):        
     lda = ldamodel.get_lda()    
