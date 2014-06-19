@@ -52,6 +52,15 @@ body {
   margin: 0 auto;
 }
 
+.legend {
+  width: 25%;
+  float: left;
+}
+
+.evaluation {
+  width: 50%;
+  float: left;
+}
 
 /* Custom page CSS
 -------------------------------------------------- */
