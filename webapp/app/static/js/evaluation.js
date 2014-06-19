@@ -31,18 +31,30 @@ $(function () {
     moveTweetCursor(1);
   }
 
-  var left = function(e){
-    
+  var rankNonRelevant = function(e){
+    window.tweets[window.current_tweet].rank(-1)
+    down();
+  }
+
+  var rankRelevant = function(e){
+    window.tweets[window.current_tweet].rank(1)
+    down();
   }
 
   Mousetrap.bind("up", up);
   Mousetrap.bind("down", down);
+  Mousetrap.bind("left", rankNonRelevant);
+  Mousetrap.bind("right", rankRelevant);
 
   var processRanking = function(data, textStatus, jqXHR) {
     console.log(data.tweets.length);
     window.current_tweet = 0;
     window.tweets = [];
     window.rated_tweets = [];
+
+    window.url = data.url;
+    window.options = data.options;
+
     data.tweets.forEach(function (tweetObj, i) {
       var tweetView = new TweetView(tweetObj);
       $(".evaluation").append(tweetView.render().el);
@@ -58,6 +70,26 @@ $(function () {
       var tweet = data[1];
       tweet.score = data[0];
       this.tweet = tweet;
+    },
+    rank: function(score) {
+      this.$el.css("transition", "all 1.0s ease-in-out")
+      this.$el.css("transform","translateX("+ score * 450+"px)")
+      this.$el.fadeOut(300, function(){
+        $(this).css({visibility: 'hidden', display:'block'})
+                .slideUp(200);
+      });
+
+      $.ajax("evaluate", {
+        type: "POST",
+        contentType: "application/json",
+        dataType: "json",
+        data: JSON.stringify({
+          url: window.url,
+          tweetId: this.tweet._id,
+          rating: score,
+          options: window.options,
+        })
+      })
     },
     render: function() {
       this.$el.html(this.template(this.tweet));
@@ -79,10 +111,10 @@ $(function () {
                     contentType: "application/json",
                     dataType: "json",
                     data: JSON.stringify({
-                        url: $("#searchbar")[0].value,
+                        url: window.url,
                         tweet: this.dataset.id,
                         relevant: relevant,
-                        options: options.serialize(),
+                        options: window.options,
                     }),
                 });
                 $(this).fadeOut(300, function(){
