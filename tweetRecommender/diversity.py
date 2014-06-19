@@ -22,7 +22,7 @@ def diversity(result, limit, tweets_index):
     else:
         offset = 0
         for index in sorted(removes, reverse=False):
-            print "remove: ", tweets_index[result[index-offset][1]]["text"]            
+            #print "remove: ", tweets_index[result[index-offset][1]]["text"]            
             del result[index-offset]
             offset += 1           
         diversity((result), limit, tweets_index)
