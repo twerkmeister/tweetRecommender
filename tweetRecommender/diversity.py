@@ -1,7 +1,7 @@
 import operator
 from tweetRecommender import log
 
-term_similarity = 2
+term_similarity = 1
 
 def diversity(result, limit, tweets_index):
     log.debug("remove similar tweets..")            
@@ -22,9 +22,9 @@ def diversity(result, limit, tweets_index):
     else:
         offset = 0
         for index in sorted(removes, reverse=False):
-            #print "remove: ", tweets_index[result[index-offset][1]]["text"]            
+            #print "remove: ", tweets_index[result[index-offset][1]]["text"].encode("utf-8")            
             del result[index-offset]
             offset += 1           
         diversity((result), limit, tweets_index)
                        
-    return result
+    return result[:limit]
