@@ -8,6 +8,7 @@ from tweetRecommender.config import config
 from tweetRecommender.mongo import mongo
 from tweetRecommender.util import set_vars, repr_
 from tweetRecommender.voting import vote
+from tweetRecommender.diversity import diversity
 from tweetRecommender import machinery
 from tweetRecommender import log
 
@@ -98,10 +99,12 @@ def rank(tweets, score_funcs, webpage, limit):
         with LOG.measured("Voting"):
             overall = vote(rankings, weights)
 
-    LOG.debug("Sorting..")
-    result = sorted(overall, key=operator.itemgetter(0), reverse=True)[:limit]
+    LOG.debug("Sorting..")        
+    result = sorted(overall, key=operator.itemgetter(0), reverse=True)
+    
+    LOG.debug("Diversity..")
+    result = diversity(result, limit, tweets_index)            
     return [(score, tweets_index[tweet]) for score, tweet in result]
-
 
 def _required_fields(funcs):
     fields = set()

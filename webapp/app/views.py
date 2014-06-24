@@ -73,9 +73,12 @@ def run_query(url, gatheringMethod, rankingMethods, filteringMethods):
 
 @app.route("/options")
 def options():
-    scoringMethods = list(machinery.find_components(machinery.SCORE_PACKAGE))
-    gatheringMethods = list(machinery.find_components(machinery.GATHER_PACKAGE))
-    filteringMethods = list(machinery.find_components(machinery.FILTER_PACKAGE))
+    def get_modules_with_display_name(package):
+        modules = list(machinery.find_components(package))
+        return [(module, machinery.get_display_name(package, module)) for module in modules]
+    scoringMethods = get_modules_with_display_name(machinery.SCORE_PACKAGE)
+    gatheringMethods = get_modules_with_display_name(machinery.GATHER_PACKAGE)
+    filteringMethods = get_modules_with_display_name(machinery.FILTER_PACKAGE)
     options = {"rankingMethods": scoringMethods,
     "gatheringMethods": gatheringMethods,
     "filteringMethods": filteringMethods}

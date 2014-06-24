@@ -13,8 +13,12 @@ $(function () {
   var moveTweetCursor = function(diff) {
     if(window.current_tweet + diff < window.tweets.length && window.current_tweet + diff >= 0){
       window.current_tweet += diff;
+      highlightCurrentTweet();
     }
-    highlightCurrentTweet();
+    else if(window.current_tweet >= window.tweets.length && window.tweets.length > 0){
+      window.current_tweet = window.tweets.length -1;
+      highlightCurrentTweet();
+    }
   }
 
   var highlightCurrentTweet = function(){
@@ -32,13 +36,17 @@ $(function () {
   }
 
   var rankNonRelevant = function(e){
-    window.tweets[window.current_tweet].rank(-1)
-    down();
+    window.tweets[window.current_tweet].rank(-1);
+    var rated_tweet = window.tweets.splice(window.current_tweet, 1);
+    window.rated_tweets.push(rated_tweet);
+    moveTweetCursor(0);
   }
 
   var rankRelevant = function(e){
-    window.tweets[window.current_tweet].rank(1)
-    down();
+    window.tweets[window.current_tweet].rank(1);
+    var rated_tweet = window.tweets.splice(window.current_tweet, 1);
+    window.rated_tweets.push(rated_tweet);
+    moveTweetCursor(0);
   }
 
   Mousetrap.bind("up", up);
@@ -72,8 +80,9 @@ $(function () {
       this.tweet = tweet;
     },
     rank: function(score) {
-      this.$el.css("transition", "all 1.0s ease-in-out")
-      this.$el.css("transform","translateX("+ score * 450+"px)")
+      this.$el.removeClass("highlighted");
+      this.$el.css("transition", "all 1.0s ease-in-out");
+      this.$el.css("transform","translateX("+ score * 450+"px)");
       this.$el.fadeOut(300, function(){
         $(this).css({visibility: 'hidden', display:'block'})
                 .slideUp(200);
