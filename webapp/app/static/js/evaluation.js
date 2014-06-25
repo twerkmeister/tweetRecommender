@@ -89,11 +89,15 @@ $(function () {
     },
     rank: function(score) {
       this.$el.removeClass("highlighted");
-      this.$el.css("transition", "all 1.0s ease-in-out");
-      this.$el.css("transform","translateX("+ score * 450+"px)");
-      this.$el.fadeOut(300, function(){
-        $(this).css({visibility: 'hidden', display:'block'})
-                .slideUp(200);
+      this.$el.height(this.$el.height());
+      this.$el.css("transition", "all 0.3s ease-in-out");
+      this.$el.css("transform","translateX("+ score * 250+"px)");
+      this.$el.css("opacity", 0);
+
+
+      this.$el.on('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd', function() {
+        $(this).css("height", 0);
+        $(this).css("overflow", "hidden");
       });
 
       $.ajax("evaluate", {
@@ -113,40 +117,40 @@ $(function () {
 
       var DRAG_OFFSET = 100;        
 
-      this.$el.draggable({
-        axis: "x",
-        scroll: false,
-        cancel: "p.tweet-body",
-        start: function(event, ui) {
-            this.originalX = this.offsetLeft;
-        },
-        stop: function(event, ui) {
-            if (!this.reverted) {
-                var relevant = this.offsetLeft > this.originalX;
-                $.ajax("evaluate", {
-                    type: "POST",
-                    contentType: "application/json",
-                    dataType: "json",
-                    data: JSON.stringify({
-                        url: window.url,
-                        tweet: this.dataset.id,
-                        relevant: relevant,
-                        options: window.options,
-                    }),
-                });
-                $(this).fadeOut(300, function(){
-                    $(this).css({visibility: 'hidden', display:'block'})
-                           .slideUp(200);
-                });
-            }
-        },
-        revert: function() {
-            var that = this[0];
-            return that.reverted =
-                Math.abs(that.originalX - that.offsetLeft) < DRAG_OFFSET;
-        },
-        revertDuration: 200,
-      });
+        // this.$el.draggable({
+        //   axis: "x",
+        //   scroll: false,
+        //   cancel: "p.tweet-body",
+        //   start: function(event, ui) {
+        //       this.originalX = this.offsetLeft;
+        //   },
+        //   stop: function(event, ui) {
+        //       if (!this.reverted) {
+        //           var relevant = this.offsetLeft > this.originalX;
+        //           $.ajax("evaluate", {
+        //               type: "POST",
+        //               contentType: "application/json",
+        //               dataType: "json",
+        //               data: JSON.stringify({
+        //                   url: window.url,
+        //                   tweet: this.dataset.id,
+        //                   relevant: relevant,
+        //                   options: window.options,
+        //               }),
+        //           });
+        //           $(this).fadeOut(300, function(){
+        //               $(this).css({visibility: 'hidden', display:'block'})
+        //                      .slideUp(200);
+        //           });
+        //       }
+        //   },
+        //   revert: function() {
+        //       var that = this[0];
+        //       return that.reverted =
+        //           Math.abs(that.originalX - that.offsetLeft) < DRAG_OFFSET;
+        //   },
+        //   revertDuration: 200,
+        // });
       
       return this;
     },
