@@ -24,6 +24,12 @@ def tokenize(text):
     return [ps.stem(w) for w in word_tokenize(text)
             if not w in get_stopwords()]
 
+@functools32.lru_cache()
+def tokenize_diversity(text):
+    text = tweetfilter.clean_tweet_hashtag(text)
+    return [ps.stem(w) for w in word_tokenize(text)
+            if not w in get_stopwords()]
+
 def handle(tweet, bulk):
     text = tweet["text"]
     tweet_id = tweet["_id"]
