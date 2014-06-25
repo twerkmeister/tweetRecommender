@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 import argparse
-import itertools
 import operator
 
 from tweetRecommender.config import config
@@ -75,7 +74,7 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
 
 def rank(tweets, score_funcs, webpage, limit):
     nvotes = len(score_funcs)
-    rankings = [[]  # so we do not have to realloc memory
+    rankings = [[]
                 for _ in score_funcs]
 
     LOG.info("Scoring by %s..",
@@ -193,9 +192,9 @@ def main(args=None):
     if args.list_components:
         if not args.raw:
             print("Available components:")
-        for flag, pkg in [("gather", GATHER_PACKAGE),
-                          ("filter", FILTER_PACKAGE),
-                          ("rank", SCORE_PACKAGE)]:
+        for flag, pkg in [("gather", machinery.GATHER_PACKAGE),
+                          ("filter", machinery.FILTER_PACKAGE),
+                          ("rank", machinery.SCORE_PACKAGE)]:
             print("  --%s:" % flag)
             for component in machinery.find_components(pkg):
                 print("\t%s" % component)
