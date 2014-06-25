@@ -37,16 +37,21 @@ $(function () {
 
   var rankNonRelevant = function(e){
     window.tweets[window.current_tweet].rank(-1);
-    var rated_tweet = window.tweets.splice(window.current_tweet, 1);
-    window.rated_tweets.push(rated_tweet);
-    moveTweetCursor(0);
+    afterRank();
   }
 
   var rankRelevant = function(e){
     window.tweets[window.current_tweet].rank(1);
+    afterRank();
+  }
+
+  var afterRank = function(){
     var rated_tweet = window.tweets.splice(window.current_tweet, 1);
     window.rated_tweets.push(rated_tweet);
     moveTweetCursor(0);
+    if(window.tweets.length === 0) {
+      next();
+    }
   }
 
   Mousetrap.bind("up", up);
@@ -55,7 +60,6 @@ $(function () {
   Mousetrap.bind("right", rankRelevant);
 
   var processRanking = function(data, textStatus, jqXHR) {
-    console.log(data.tweets.length);
     window.current_tweet = 0;
     window.tweets = [];
     window.rated_tweets = [];
@@ -68,7 +72,11 @@ $(function () {
       $(".evaluation").append(tweetView.render().el);
       window.tweets.push(tweetView);
     });
-    highlightCurrentTweet();
+    if(data.tweets.length > 0){
+      highlightCurrentTweet();
+    } else {
+      toastr.error("Error calculating a ranking");
+     }
   }
 
   var TweetView = Backbone.View.extend({
@@ -144,7 +152,11 @@ $(function () {
     },
 
   });
+  
+  var next = function(){
+    $.ajax("evaluation/next").done(processRanking);
+  }
 
-  $.ajax("evaluation/next").done(processRanking);
+  next();
 
 });
