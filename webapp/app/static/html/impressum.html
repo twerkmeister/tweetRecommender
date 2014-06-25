@@ -1,0 +1,82 @@
+<html>
+  <head>
+    <title>Tweet Recommender</title>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/custom.css" rel="stylesheet">
+
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script type="text/javascript">
+        function UnCryptMailto( s )
+        {
+            var n = 0;
+            var r = "";
+            for( var i = 0; i < s.length; i++)
+            {
+                n = s.charCodeAt( i );
+                if( n >= 8364 )
+                {
+                    n = 128;
+                }
+                r += String.fromCharCode( n - 1 );
+            }
+            return r;
+        }
+
+        function linkTo_UnCryptMailto( s )
+        {
+            location.href=UnCryptMailto( s );
+        }
+     </script>
+
+  </head>
+  <body>
+    <div id="wrap">
+            <!-- Fixed navbar -->
+      <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+          <div class="container">
+            <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+              <span class="icon-bar">Impressum</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="brand" href="/">TweetRecommender</a>
+          </div>
+        </div>
+      </div>
+      <div class="container impressum">
+        <h3>Impressum</h3>
+        <p>
+          Dr. Ralf Krestel<br/>
+          Hasso-Plattner-Institut<br/>
+          für Softwaresystemtechnik<br/>
+          Prof.-Dr.-Helmert-Str. 2-3<br/>
+          D-14482 Potsdam, Germany<br/>
+        </p>
+        <p>
+          Mail: <a href="javascript:linkTo_UnCryptMailto('nbjmup;sbmg/lsftufmAiqj/voj.qputebn/ef');">ralf.krestel(at)hpi.uni-potsdam.de</a><br/>
+          Tel.: +49 331 5509 253
+          <a href="mailto:ralf.krestel@hpi.de"></a><br/>
+        </p>
+        <h5>Rechtliche Hinweise:</h5>
+        <p>
+Das Hasso-Plattner-Institut (HPI) überprüft und aktualisiert regelmäßig die Inhalte seiner Websites. Trotz größtmöglicher Sorgfalt können wir nicht ausschließen, dass einzelne Informationen auf unseren Seiten veraltet oder nicht zutreffend sind. Daher können wir keine Haftung für Aktualität, Genauigkeit und Vollständigkeit der publizierten Informationen übernehmen. Das gleiche gilt für alle Websites, die von den HPI-Seiten über Hyperlinks erreichbar sind. Für alle diese Links gilt: Wir erklären ausdrücklich, dass wir keinen Einfluss auf die Gestaltung und die Inhalte der verlinkten Seite haben. Deshalb distanzieren wir uns hiermit ausdrücklich von allen Inhalten aller verlinkten Seiten und machen uns ihre Inhalte nicht zu Eigen. Diese Erklärung gilt für alle auf unserer Seite angebrachten Links zu fremden Seiten. Für den Inhalt dieser verlinkten Seiten ist das HPI nicht verantwortlich. Weiterhin behält sich das HPI jederzeit Änderungen und Ergänzungen der angezeigten Informationen vor. Inhalt und Struktur der HPI-Website sind durch das Copyright geschützt. Die Weiterverwendung von Informationen und Daten, vor allem die Verwendung von Texten und Illustrationen ist nur nach unserer Zustimmung zulässig. Wir wünschen Ihnen einen informativen Aufenthalt auf unserer Websites und freuen uns über alle Vorschläge, Wünsche oder Kritik zu unserer Website! 
+        </p>
+      </div>
+      
+      <div id="push"></div>
+    </div>
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">Masterproject summer term 2014 at <a href="https://hpi.de" target="_blank">HPI Potsdam</a> "Finding relevant tweets for news". Find us <a href="https://github.com/twerkmeister/tweetRecommender" target="_blank">@github</a>.
+          <a class="impressum-link" href="/impressum">Impressum</a> </p>
+      </div>
+    </div>
+  </body>
+</html>

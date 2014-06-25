@@ -58,7 +58,7 @@ def query():
 def run_query(url, gatheringMethod, rankingMethods, filteringMethods):
     result = {"webpage": "", "tweets": []}
     try:
-        result["webpage"] = get_webpage(url, mongo.coll(WEBPAGES_COLLECTION))["content"].encode('utf-8')
+        result["webpage"] = get_webpage(url, mongo.coll(WEBPAGES_COLLECTION))["url"].encode('utf-8')
         result["tweets"] = recommend(url, gatheringMethod, rankingMethods, filteringMethods,
                            ['user.screen_name', 'created_at', 'text'],
                            TWEETS_COLLECTION, WEBPAGES_COLLECTION, LIMIT)
@@ -115,3 +115,6 @@ def evaluation_next():
     return jsonify(response)
 
 
+@app.route("/impressum")
+def impressum():
+    return send_file("static/html/impressum.html")
