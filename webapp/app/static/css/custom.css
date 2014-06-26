@@ -99,6 +99,9 @@ input[type="checkbox"] {
 
 .tweet {
   padding: 3px;
+  max-height: 150px;
+  overflow: hidden;
+  transition: all 0.3 ease-in-out;
 }
 
 .tweet-odd {  
@@ -125,8 +128,68 @@ input[type="checkbox"] {
   margin-top: 5px;
 }
 
-.tweet.highlighted {
+.highlighted {
   background: #ccc;
+}
+
+@-webkit-keyframes moveright {
+    from {  -webkit-transform: translateX(0px);
+            opacity: 1;    }
+    to   {  -webkit-transform: translateX(250px);
+            opacity: 0;  }
+}
+
+@-webkit-keyframes moveleft {
+    from {  -webkit-transform: translateX(0px);
+            opacity: 1;    }
+    to   {  -webkit-transform: translateX(-250px);
+            opacity: 0;  }
+}
+
+@-webkit-keyframes shrink {
+  from { height:80px;
+        opacity: 0;}
+  to {height: 0px;
+      opacity:0;}
+}
+
+@keyframes moveright {
+    from {  transform: translateX(0px);
+            opacity: 1;    }
+    to   {  transform: translateX(250px);
+            opacity: 0;  }
+}
+
+@keyframes moveleft {
+    from {  transform: translateX(0px);
+            opacity: 1;    }
+    to   {  transform: translateX(-250px);
+            opacity: 0;  }
+}
+
+@keyframes shrink {
+  from { height:80px;
+        opacity: 0;}
+  to {height: 0px;
+      opacity:0;}
+}
+
+.moveright {
+    -webkit-animation: 
+      moveright 0.3s 1,
+      shrink 0.3s 0.3s 1;
+    animation: 
+      moveright 0.3s 1,
+      shrink 0.3s 0.3s 1;
+}
+
+.moveleft {
+    -webkit-animation: 
+      moveleft 0.3s 1,
+      shrink 0.3s 0.3s 1;
+    animation: 
+      moveleft 0.3s 1,
+      shrink 0.3s 0.3s 1;
 }
 
 /* result.html css 

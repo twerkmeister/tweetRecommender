@@ -6,52 +6,19 @@ $(function () {
     }
   }, false);
 
-  window.current_tweet = 0;
-  window.tweets = [];
-  window.rated_tweets = [];
-
-  var moveTweetCursor = function(diff) {
-    if(window.current_tweet + diff < window.tweets.length && window.current_tweet + diff >= 0){
-      window.current_tweet += diff;
-      highlightCurrentTweet();
-    }
-    else if(window.current_tweet >= window.tweets.length && window.tweets.length > 0){
-      window.current_tweet = window.tweets.length -1;
-      highlightCurrentTweet();
-    }
-  }
-
-  var highlightCurrentTweet = function(){
-    window.tweets.forEach(function(tweet){
-      tweet.$el.find(".tweet").removeClass("highlighted")
-    });
-    window.tweets[window.current_tweet].$el.find(".tweet").addClass("highlighted")
-  }
-
   var up = function(e){
-    moveTweetCursor(-1);
+    tweets.moveTweetCursor(-1);
   }
   var down = function(e){
-    moveTweetCursor(1);
+    tweets.moveTweetCursor(1);
   }
 
   var rankNonRelevant = function(e){
-    window.tweets[window.current_tweet].rank(-1);
-    afterRank();
+    tweets.rankTweet(-1);
   }
 
   var rankRelevant = function(e){
-    window.tweets[window.current_tweet].rank(1);
-    afterRank();
-  }
-
-  var afterRank = function(){
-    var rated_tweet = window.tweets.splice(window.current_tweet, 1);
-    window.rated_tweets.push(rated_tweet);
-    moveTweetCursor(0);
-    if(window.tweets.length === 0) {
-      next();
-    }
+    tweets.rankTweet(1);
   }
 
   Mousetrap.bind("up", up);
@@ -59,108 +26,112 @@ $(function () {
   Mousetrap.bind("left", rankNonRelevant);
   Mousetrap.bind("right", rankRelevant);
 
-  var processRanking = function(data, textStatus, jqXHR) {
-    window.current_tweet = 0;
-    window.tweets = [];
-    window.rated_tweets = [];
-
-    window.url = data.url;
-    window.options = data.options;
-
-    data.tweets.forEach(function (tweetObj, i) {
-      var tweetView = new TweetView(tweetObj);
-      $(".evaluation").append(tweetView.render().el);
-      window.tweets.push(tweetView);
-    });
-    if(data.tweets.length > 0){
-      highlightCurrentTweet();
-    } else {
-      toastr.error("Error calculating a ranking");
-     }
-  }
-
-  var TweetView = Backbone.View.extend({
-    template : _.template($("#tweet-template").html()),
-
-    initialize: function(data) {
-      var tweet = data[1];
-      tweet.score = data[0];
-      this.tweet = tweet;
-    },
-    rank: function(score) {
-      this.$el.removeClass("highlighted");
-      this.$el.height(this.$el.height());
-      this.$el.css("transition", "all 0.3s ease-in-out");
-      this.$el.css("transform","translateX("+ score * 250+"px)");
-      this.$el.css("opacity", 0);
-
-
-      this.$el.on('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd', function() {
-        $(this).css("height", 0);
-        $(this).css("overflow", "hidden");
-      });
-
+  var TweetModel = Backbone.Model.extend({
+    rank: function(score){
+      this.trigger("ranked", score);
       $.ajax("evaluate", {
         type: "POST",
         contentType: "application/json",
         dataType: "json",
         data: JSON.stringify({
-          url: window.url,
-          tweetId: this.tweet._id,
+          url: this.collection.url,
+          tweetId: this.get("_id"),
           rating: score,
-          options: window.options,
+          options: this.collection.newsURL,
         })
-      })
-    },
-    render: function() {
-      this.$el.html(this.template(this.tweet));
-
-      var DRAG_OFFSET = 100;        
-
-        // this.$el.draggable({
-        //   axis: "x",
-        //   scroll: false,
-        //   cancel: "p.tweet-body",
-        //   start: function(event, ui) {
-        //       this.originalX = this.offsetLeft;
-        //   },
-        //   stop: function(event, ui) {
-        //       if (!this.reverted) {
-        //           var relevant = this.offsetLeft > this.originalX;
-        //           $.ajax("evaluate", {
-        //               type: "POST",
-        //               contentType: "application/json",
-        //               dataType: "json",
-        //               data: JSON.stringify({
-        //                   url: window.url,
-        //                   tweet: this.dataset.id,
-        //                   relevant: relevant,
-        //                   options: window.options,
-        //               }),
-        //           });
-        //           $(this).fadeOut(300, function(){
-        //               $(this).css({visibility: 'hidden', display:'block'})
-        //                      .slideUp(200);
-        //           });
-        //       }
-        //   },
-        //   revert: function() {
-        //       var that = this[0];
-        //       return that.reverted =
-        //           Math.abs(that.originalX - that.offsetLeft) < DRAG_OFFSET;
-        //   },
-        //   revertDuration: 200,
-        // });
-      
-      return this;
-    },
+      });
+    }
 
   });
-  
-  var next = function(){
-    $.ajax("evaluation/next").done(processRanking);
-  }
 
-  next();
+  var TweetsCollection = Backbone.Collection.extend({
+    model: TweetModel,
+    url: "evaluation/next",
+    initialize: function() {
+      this.current_tweet=0;
+      this.listenTo(this, "sync", function(){
+        if(this.length > 0)
+          this.at(this.current_tweet).trigger("highlight");
+        else
+          this.fetch();});
+    },
+    parse: function(response){
+      if(response.tweets.length == 0){
+        toastr.error("Error calculating a ranking");
 
+      }
+      this.options = response.options
+      this.newsURL = response.url
+      return response.tweets
+
+    },
+    moveTweetCursor: function(diff) {
+      if(this.current_tweet + diff < this.length && this.current_tweet + diff >= 0){
+        this.current_tweet += diff;
+        this.at(this.current_tweet).trigger("highlight")
+      }
+      else if(this.current_tweet >= this.length && this.length > 0){
+        this.current_tweet = this.length -1;
+        this.at(this.current_tweet).trigger("highlight")
+      }
+    },
+    rankTweet: function(score) {
+      this.at(this.current_tweet).rank(score);
+      this.remove(this.at(this.current_tweet));
+      this.moveTweetCursor(0);
+      if(this.length == 0)
+        this.fetch()
+    }
+  });
+
+  var TweetView = Backbone.View.extend({
+    template : _.template($("#tweet-template").html()),
+    initialize: function(){
+      this.listenTo(this.model, "highlight", this.highlight);
+      this.listenTo(this.model, "ranked", this.ranked)
+    },
+    ranked: function(score) {
+
+      this.$el.on("animationend webkitAnimationEnd", function(e){
+        if(e.originalEvent.animationName == "shrink")
+          this.remove();
+      }.bind(this));
+      if(score == 1)
+        this.$el.addClass("moveright");
+      else
+        this.$el.addClass("moveleft");
+    },
+    render: function() {
+      console.log(this.template(this.model.toJSON()));
+      this.$el.html(this.template(this.model.toJSON()));
+      return this;
+    },
+    highlight: function() {
+      //Disclaimer: This is bad style
+      $(".highlighted").removeClass("highlighted");
+      this.$el.addClass("highlighted");
+    }
+
+  });
+
+  var TweetCollectionView = Backbone.View.extend({
+    template: _.template("<div></div>"),
+    initialize: function(){
+      this.listenTo(this.collection, "sync", function(){this.render(); this.collection.first().trigger("highlight");})
+      this.collection.fetch();
+    },
+    render: function() {
+      this.$el.html(this.template());
+      var self = this;
+      this.collection.forEach(function(tweetModel){
+        var tweetView = new TweetView({model: tweetModel})
+        self.$el.append(tweetView.render().el)
+      });
+      return this;
+    }
+  })
+
+  var tweets = new TweetsCollection();
+  var tweetCollectionView = new TweetCollectionView({collection: tweets});
+  $(".evaluation").append(tweetCollectionView.render().el);
 });
