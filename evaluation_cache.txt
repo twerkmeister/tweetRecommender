@@ -1,0 +1,10 @@
+STRUCTURE -- evaluation_cache:
+
+{
+  "query_url": <url>,
+  "tweets": [
+    "tweet": <tweet>,
+    "returned_by": [<algo_id>],
+    "scores": [<sore>]
+  ]
+}
