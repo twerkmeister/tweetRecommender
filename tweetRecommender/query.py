@@ -27,6 +27,9 @@ WEBPAGES_COLLECTION = 'webpages'
 TWEETS_SUBSAMPLE = 'sample_tweets'
 WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
 
+EVALUATION_RANKERS = ['lda_cossim', 'language_model', 'text_overlap, date']
+CACHED_RESULTS_COLLECTION = 'evaluation_cache'
+
 LOG = log.getLogger('tweetRecommender.query')
 
 def get_webpage(uri, webpages_coll):
@@ -141,6 +144,21 @@ def run(url, gatherer, rankers, filters,
 
     return query(url, gather_func, score_funcs, filter_funcs, fields,
                  tweets_coll, webpages_coll, limit)
+
+def evaluation_run(query_url):
+    cached_results = mongo.coll(CACHED_RESULTS_COLLECTION).find_one({'query_url': query_url})
+    if not cached_results:
+        tweets = []
+        for ranker in EVALUATION_RANKERS.split(','):
+            ranker_result = run(rankers=ranker)
+            for score, tweet in ranker_result:
+                if tweet in tweets:
+                    tweets
+        return
+
+    tweets = [(tweet['score'], tweet['tweet_data']) for tweet in cached_results['tweets']]
+    return tweets
+
 
 
 def main(args=None):
