@@ -145,13 +145,19 @@ def run(url, gatherer, rankers, filters,
     return query(url, gather_func, score_funcs, filter_funcs, fields,
                  tweets_coll, webpages_coll, limit)
 
+def choose_tweets(tweets):
+    chosen = tweets[:5]
+    chosen.extend(tweets[-5:])
+    return chosen
+
 def evaluation_run(query_url):
     cached_results = mongo.coll(CACHED_RESULTS_COLLECTION).find_one({'query_url': query_url})
     if not cached_results:
         tweets = []
         for ranker in EVALUATION_RANKERS.split(','):
             ranker_result = run(rankers=ranker)
-            for score, tweet in ranker_result:
+            chosen_subset = choose_tweets(ranker_result)
+            for score, tweet in chosen_subset:
                 if tweet in tweets:
                     tweets
         return
