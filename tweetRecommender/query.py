@@ -13,6 +13,7 @@ from tweetRecommender import machinery
 from tweetRecommender import log
 
 import six
+import random
 
 
 SCORE_WEIGHT_SEP = ':'
@@ -168,10 +169,12 @@ def evaluation_run(query_url):
                     tweet_objects.append(tweet_object)
                     tweet_ids.append(tweed['_id'])
         cache_collection.insert({'query_url': query_url, 'tweets': tweet_objects})
-        return [(tweet['scores'], tweet['tweet']) for tweet in tweet_objects]
-
-    tweets = [(tweet['scores'], tweet['tweet']) for tweet in cached_results['tweets']]
-    return tweets
+        return_list = [(tweet['scores'], tweet['tweet']) for tweet in tweet_objects]
+    else:
+        return_list = [(tweet['scores'], tweet['tweet']) for tweet in cached_results['tweets']]
+    
+    random.shuffle(return_list)
+    return return_list
 
 
 
