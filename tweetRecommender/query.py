@@ -151,18 +151,26 @@ def choose_tweets(tweets):
     return chosen
 
 def evaluation_run(query_url):
-    cached_results = mongo.coll(CACHED_RESULTS_COLLECTION).find_one({'query_url': query_url})
+    cache_collection = mongo.coll(CACHED_RESULTS_COLLECTION)
+    cached_results = cache_collection.find_one({'query_url': query_url})
     if not cached_results:
-        tweets = []
+        tweet_ids = []
+        tweet_objects = []
         for ranker in EVALUATION_RANKERS.split(','):
             ranker_result = run(rankers=ranker)
             chosen_subset = choose_tweets(ranker_result)
             for score, tweet in chosen_subset:
-                if tweet in tweets:
-                    tweets
-        return
+                try:
+                    index = tweet_ids.index(tweet['_id'])
+                    tweet_objects[index]['scores'].append({ranker: score})
+                except ValueError:
+                    tweet_object = {'tweet': tweet, 'scores': [{ranker: score}]}
+                    tweet_objects.append(tweet_object)
+                    tweet_ids.append(tweed['_id'])
+        cache_collection.insert({'query_url': query_url, 'tweets': tweet_objects})
+        return [(tweet['scores'], tweet['tweet']) for tweet in tweet_objects]
 
-    tweets = [(tweet['score'], tweet['tweet_data']) for tweet in cached_results['tweets']]
+    tweets = [(tweet['scores'], tweet['tweet']) for tweet in cached_results['tweets']]
     return tweets
 
 
