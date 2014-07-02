@@ -34,10 +34,10 @@ $(function () {
         contentType: "application/json",
         dataType: "json",
         data: JSON.stringify({
-          url: this.collection.url,
+          options: this.get("options"),
           tweetId: this.get("_id"),
           rating: score,
-          options: this.collection.newsURL,
+          webpage: this.collection.newsURL
         })
       });
     }
@@ -60,7 +60,6 @@ $(function () {
         toastr.error("Error calculating a ranking");
 
       }
-      this.options = response.options
       this.newsURL = response.url
       return response.tweets
 

@@ -12,12 +12,29 @@ from flask import render_template, redirect, send_file
 from flask import url_for, jsonify
 
 import uuid
+from itertools import chain
+from random import shuffle
 
 
 TWEETS_COLLECTION = 'sample_tweets'
 WEBPAGES_COLLECTION = 'sample_webpages'
 LIMIT = 10
 
+EVALUATION_GATHERING = "terms"
+EVALUATION_FILTERING = []
+EVALUATION_RANKING = [["language_model"], ["lda_cossim"], ["text_overlap", "date", "follower_count"]]
+
+class MethodSet:
+    def __init__(self, gatherer, filters, rankers):
+        self.gatherer = gatherer
+        self.filters = filters
+        self.rankers = rankers
+
+EVALUATION_CANDIDATES = [
+    MethodSet("terms", ["expected_time"], ["language_model"]),
+    MethodSet("terms", ["expected_time"], ["lda_cossim"]),
+    MethodSet("terms", ["expected_time"], ["text_overlap", "date", "follower_count"])
+]
 
 def random_url():
     return mongo.random(WEBPAGES_COLLECTION)['url']
@@ -35,7 +52,6 @@ def random_options():
         filteringMethods = filters,
         rankingMethods = rankers,
     )
-
 
 @app.route("/", methods=['GET'])
 def index():
@@ -55,17 +71,21 @@ def query():
 
     return jsonify(run_query(url, gatheringMethod, rankingMethods, filteringMethods))
 
-def run_query(url, gatheringMethod, rankingMethods, filteringMethods):
+def run_query(url, gatheringMethod, rankingMethods, filteringMethods, limit = LIMIT):
     result = {"webpage": "", "tweets": []}
     try:
         result["webpage"] = get_webpage(url, mongo.coll(WEBPAGES_COLLECTION))["url"].encode('utf-8')
         result["tweets"] = recommend(url, gatheringMethod, rankingMethods, filteringMethods,
                            ['user.screen_name', 'created_at', 'text'],
-                           TWEETS_COLLECTION, WEBPAGES_COLLECTION, LIMIT)
+                           TWEETS_COLLECTION, WEBPAGES_COLLECTION, limit)
 
         for score, tweet in result["tweets"]:
             tweet["_id"] = str(tweet["_id"])
             tweet["score"] = score
+            tweet["options"] = {}
+            tweet["options"]["gatheringMethod"] = gatheringMethod
+            tweet["options"]["filteringMethods"] = filteringMethods
+            tweet["options"]["rankingMethods"] = rankingMethods
 
         #consolidate score and tweets
         result["tweets"] = [tweet for score, tweet in result["tweets"]]
@@ -94,7 +114,7 @@ def evaluate():
     uid = session.get('uid', '')
     tweet = request.json['tweetId']
     options = request.json['options']
-    webpage = request.json['url']
+    webpage = request.json['webpage']
     rating = request.json['rating']
 
     mongo.db.evaluation.update(
@@ -113,10 +133,11 @@ def evaluation():
 @app.route("/evaluation/next")
 def evaluation_next():
     url = random_url()
-    options = random_options()
-    results = run_query(url, options["gatheringMethod"], options["rankingMethods"], options["filteringMethods"])
-    response = dict({"options": options}, **dict({"url": url}, **results))
-    return jsonify(response)
+    tweets_combined = [run_query(url, ms.gatherer, ms.rankers, ms.filters)["tweets"] for ms in EVALUATION_CANDIDATES]
+    tweets = list(chain.from_iterable(tweets_combined))
+    shuffle(tweets)
+    result = {"url": url, "tweets": tweets}
+    return jsonify(result)
 
 
 @app.route("/impressum")
