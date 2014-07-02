@@ -16,8 +16,8 @@ from itertools import chain
 from random import shuffle
 
 
-WEBPAGES_COLLECTION = 'sample_webpages'
 TWEETS_COLLECTION = 'sample_tweets'
+WEBPAGES_COLLECTION = 'sample_webpages'
 LIMIT = 10
 
 EVALUATION_GATHERING = "terms"
@@ -143,3 +143,18 @@ def evaluation_next():
 @app.route("/impressum")
 def impressum():
     return send_file("static/html/impressum.html")
+
+@app.route("/article", methods=['POST'])
+def get_article():
+    article = ""    
+    try:        
+        url = request.json["url"]                                
+        object = get_webpage(url, mongo.coll(WEBPAGES_COLLECTION))        
+        if "article" in object:
+            article = object["article"].encode("utf-8")
+        else:
+            article = object["content"].encode("utf-8")                                    
+    except Exception, e:
+        import traceback; traceback.print_exc()
+    finally:
+        return jsonify({"article" : article, "url" : url})

@@ -25,6 +25,14 @@
         <p class="tweet-body"><%= text %></p>
       </div>
     </script>
+    
+    <script type="text/template" id ="article-template">	 	        
+       	<a href="#article" class = "article_toggle">Hide Article</a>      	      
+		<a href="<%= url %>" class = "article_link" target="_blank">Read in New Tab</a>      	      
+      	<div id = "article_text" class = "article_text">	
+			<%= article %>
+	  	</div>	
+    </script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
