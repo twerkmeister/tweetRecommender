@@ -140,8 +140,7 @@ $(function () {
 	   var ArticleView = Backbone.View.extend({
 		initialize: function(url){
 				     this.newsURL = url;      
-				     $(".article_text").remove();
-				     $(".article_toggle").remove();
+				     $(".article").empty();				     
 		},
 		template : _.template($("#article-template").html()),
 		render : function() {					
@@ -154,16 +153,16 @@ $(function () {
 							"url" : this.newsURL
 						}),
 						success : function(result) {
-							that.$el.html(that.template(result));
+							that.$el.html(that.template(result));							
 						}
-					});
+					});					
 					return this;
 				},
 		events : {'click a.article_toggle' : 'articleToggling'},
 		articleToggling : function(e) {
 					$(".article_text").slideToggle("slow");
 					$(e.currentTarget).text(($(e.currentTarget).text() == 'Show Article') ? 'Hide Article': 'Show Article');
-				 }
+				 }		
 		});
 
   var tweets = new TweetsCollection();  

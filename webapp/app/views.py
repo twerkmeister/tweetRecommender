@@ -136,4 +136,4 @@ def get_article():
     except Exception, e:
         import traceback; traceback.print_exc()
     finally:
-        return jsonify({"article" : article})
+        return jsonify({"article" : article, "url" : url})
