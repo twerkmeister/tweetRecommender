@@ -28,7 +28,7 @@ WEBPAGES_COLLECTION = 'webpages'
 TWEETS_SUBSAMPLE = 'sample_tweets'
 WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
 
-EVALUATION_RANKERS = ['lda_cossim', 'language_model', 'text_overlap, date']
+EVALUATION_RANKERS = ['language_model', 'text_overlap']
 CACHED_RESULTS_COLLECTION = 'evaluation_cache'
 
 LOG = log.getLogger('tweetRecommender.query')
@@ -142,7 +142,6 @@ def run(url, gatherer, rankers, filters,
 
     tweets_coll = mongo.coll(tweets_ref)
     webpages_coll = mongo.coll(webpages_ref)
-
     return query(url, gather_func, score_funcs, filter_funcs, fields,
                  tweets_coll, webpages_coll, limit)
 
@@ -154,11 +153,14 @@ def choose_tweets(tweets):
 def evaluation_run(query_url):
     cache_collection = mongo.coll(CACHED_RESULTS_COLLECTION)
     cached_results = cache_collection.find_one({'query_url': query_url})
+
     if not cached_results:
         tweet_ids = []
         tweet_objects = []
-        for ranker in EVALUATION_RANKERS.split(','):
-            ranker_result = run(rankers=ranker)
+        for ranker in EVALUATION_RANKERS:
+            ranker_result = run(url=query_url, gatherer="terms", rankers=ranker.split(','),
+                filters=[], fields=['user.screen_name', 'created_at', 'text'],
+                tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=100)
             chosen_subset = choose_tweets(ranker_result)
             for score, tweet in chosen_subset:
                 try:
@@ -167,12 +169,12 @@ def evaluation_run(query_url):
                 except ValueError:
                     tweet_object = {'tweet': tweet, 'scores': [{ranker: score}]}
                     tweet_objects.append(tweet_object)
-                    tweet_ids.append(tweed['_id'])
-        cache_collection.insert({'query_url': query_url, 'tweets': tweet_objects})
-        return_list = [(tweet['scores'], tweet['tweet']) for tweet in tweet_objects]
+                    tweet_ids.append(tweet['_id'])
+        #cache_collection.update({'query_url': query_url, 'tweets': tweet_objects})
+        return_list = [(0, tweet['tweet']) for tweet in tweet_objects]
+
     else:
-        return_list = [(tweet['scores'], tweet['tweet']) for tweet in cached_results['tweets']]
-    
+        return_list = [(0, tweet['tweet']) for tweet in cached_results['tweets']]
     random.shuffle(return_list)
     return return_list
 
