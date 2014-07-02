@@ -11,9 +11,7 @@ $(function () {
   var TweetView = Backbone.View.extend({
     template : _.template($("#tweet-template").html()),
 
-    initialize: function(data) {
-      var tweet = data[1];
-      tweet.score = data[0];
+    initialize: function(tweet) {;
       this.tweet = tweet;
     },
     render: function() {

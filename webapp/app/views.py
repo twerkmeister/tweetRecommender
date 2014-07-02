@@ -65,6 +65,10 @@ def run_query(url, gatheringMethod, rankingMethods, filteringMethods):
 
         for score, tweet in result["tweets"]:
             tweet["_id"] = str(tweet["_id"])
+            tweet["score"] = score
+
+        #consolidate score and tweets
+        result["tweets"] = [tweet for score, tweet in result["tweets"]]
 
     except Exception, e:
         import traceback; traceback.print_exc()
