@@ -24,7 +24,7 @@ $(function () {
   Mousetrap.bind("up", up);
   Mousetrap.bind("down", down);
   Mousetrap.bind("left", rankNonRelevant);
-  Mousetrap.bind("right", rankRelevant);
+  Mousetrap.bind("right", rankRelevant);    
 
   var TweetModel = Backbone.Model.extend({
     rank: function(score){
@@ -102,7 +102,7 @@ $(function () {
         this.$el.addClass("moveleft");
     },
     render: function() {
-      console.log(this.template(this.model.toJSON()));
+      //console.log(this.template(this.model.toJSON()));
       this.$el.html(this.template(this.model.toJSON()));
       return this;
     },
@@ -117,8 +117,13 @@ $(function () {
   var TweetCollectionView = Backbone.View.extend({
     template: _.template("<div></div>"),
     initialize: function(){
-      this.listenTo(this.collection, "sync", function(){this.render(); this.collection.first().trigger("highlight");})
-      this.collection.fetch();
+      this.listenTo(this.collection, "sync", function(){
+    	  this.render(); 
+    	  this.collection.first().trigger("highlight");    	      	  
+    	  var articleView = new ArticleView(this.collection.newsURL);    
+    	  $(".article").append(articleView.render().el);
+      })
+      this.collection.fetch();      
     },
     render: function() {
       this.$el.html(this.template());
@@ -126,12 +131,42 @@ $(function () {
       this.collection.forEach(function(tweetModel){
         var tweetView = new TweetView({model: tweetModel})
         self.$el.append(tweetView.render().el)
-      });
+      });      
       return this;
     }
   })
+  
 
-  var tweets = new TweetsCollection();
-  var tweetCollectionView = new TweetCollectionView({collection: tweets});
+	   var ArticleView = Backbone.View.extend({
+		initialize: function(url){
+				     this.newsURL = url;      
+				     $(".article_text").remove();
+				     $(".article_toggle").remove();
+		},
+		template : _.template($("#article-template").html()),
+		render : function() {					
+					var that = this
+					$.ajax("article", {
+						type : "POST",
+						contentType : "application/json",
+						dataType : "json",
+						data : JSON.stringify({
+							"url" : this.newsURL
+						}),
+						success : function(result) {
+							that.$el.html(that.template(result));
+						}
+					});
+					return this;
+				},
+		events : {'click a.article_toggle' : 'articleToggling'},
+		articleToggling : function(e) {
+					$(".article_text").slideToggle("slow");
+					$(e.currentTarget).text(($(e.currentTarget).text() == 'Show Article') ? 'Hide Article': 'Show Article');
+				 }
+		});
+
+  var tweets = new TweetsCollection();  
+  var tweetCollectionView = new TweetCollectionView({collection: tweets});  
   $(".evaluation").append(tweetCollectionView.render().el);
 });

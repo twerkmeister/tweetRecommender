@@ -210,3 +210,18 @@ input[type="checkbox"] {
 .table_space tr{
 	padding:4px;	
 }
+
+
+/* show article css 
+---------------------------------------------------- */
+
+.article_text{
+	width: 100%; 
+	height: 500px;
+	overflow: auto; 
+	margin-top:10px;	
+}
+.article{
+	margin-top:30px;
+	margin-bottom:30px
+}
