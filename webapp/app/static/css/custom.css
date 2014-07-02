@@ -217,11 +217,18 @@ input[type="checkbox"] {
 
 .article_text{
 	width: 100%; 
-	height: 500px;
+	max-height: 300px;
 	overflow: auto; 
 	margin-top:10px;	
 }
+
 .article{
 	margin-top:30px;
-	margin-bottom:30px
+	margin-bottom:30px;
+  border: 1px solid gray;
+  padding: 15px;
+}
+
+.article_buttons {
+  text-align: right
 }

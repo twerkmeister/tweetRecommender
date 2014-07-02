@@ -14,24 +14,29 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.syphon/0.4.1/backbone.syphon.min.js"></script>
     <script src="http://cdn.craig.is/js/mousetrap/mousetrap.min.js?9d308"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="http://bootstrap.ourjs.com/js/jquery.bootstrap.min.js"></script>
+    
 
     <script type="text/template" id ="tweet-template">
         <div class="tweet" data-id=<%= tweet_id %>>
-        <div class="tweet-header">
-          <span class="tweet-author"><%= user.screen_name %></span>
-          <span class="tweet-date"><%= created_at %></span>
-          <span class="badge badge-info"><%= parseFloat(score).toFixed(3) %></span>
+          <div class="tweet-header">
+            <span class="tweet-author"><%= user.screen_name %></span>
+            <span class="tweet-date"><%= created_at %></span>
+            <span class="badge badge-info"><%= parseFloat(score).toFixed(3) %></span>
+          </div>
+          <p class="tweet-body"><%= text %></p>
         </div>
-        <p class="tweet-body"><%= text %></p>
-      </div>
     </script>
     
-    <script type="text/template" id ="article-template">	 	        
-       	<a href="#article" class = "article_toggle">Hide Article</a>      	      
-		<a href="<%= url %>" class = "article_link" target="_blank">Read in New Tab</a>      	      
-      	<div id = "article_text" class = "article_text">	
-			<%= article %>
-	  	</div>	
+    <script type="text/template" id ="article-template">	 	 
+        <div class="article_buttons">       
+         	<a href="#article" class="article_toggle">Hide Article</a> 
+          |     	      
+  		    <a href="<%= url %>" class="article_link" target="_blank">Read in New Tab</a>  
+        </div>    	      
+      	<div id = "article_text" class="article_text">	
+			    <%= article %>
+	  	  </div>	
     </script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,6 +61,25 @@
 
       <!-- Begin page content -->
       <div class="container">
+        <div class="instruction">
+          <h5>Thanks for taking part in the manual evaluation of our tool 'tweetRecommender'.</h5>
+
+          <p>In the following we will show recent news articles on various topics.
+          For each article our tool recommends a number of tweets.<br />
+          Your task is to decide whether a tweet is relevant for the given news article.<br />
+          You may use the following list as indicators for a relevant tweet:
+          <ul>
+            <li>adds information</li>
+            <li>fits to topic</li>
+            <li>confirms article (with another source/without repeating the headline)</li>
+            <li>interesting opinion</li>
+            <li>filled with argument(s)</li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="article"></div>
+        </div>
         <div class="legend">
           <div class="center">
             <h4>Not Relevant</h4>
@@ -64,7 +88,6 @@
         </div>
         <div class="evaluation">
           <h3>Please rate the relevance of the tweets with respect to the given news article</h3>
-          <div class="article"></div>
         </div>
         <div class="legend">
           <div class="center">

@@ -53,7 +53,7 @@ $(function () {
         if(this.length > 0)
           this.at(this.current_tweet).trigger("highlight");
         else
-          this.fetch();});
+          this.fetchNew();});
     },
     parse: function(response){
       if(response.tweets.length == 0){
@@ -80,7 +80,10 @@ $(function () {
       this.remove(this.at(this.current_tweet));
       this.moveTweetCursor(0);
       if(this.length == 0)
-        this.fetch()
+        this.fetchNew()
+    },
+    fetchNew: function() {    
+      this.fetch()
     }
   });
 
@@ -118,14 +121,15 @@ $(function () {
     template: _.template("<div></div>"),
     initialize: function(){
       this.listenTo(this.collection, "sync", function(){
-    	  this.render(); 
-    	  this.collection.first().trigger("highlight");    	      	  
-    	  var articleView = new ArticleView(this.collection.newsURL);    
-    	  $(".article").append(articleView.render().el);
+        this.render(); 
+        this.collection.first().trigger("highlight");               
       })
-      this.collection.fetch();      
+      this.collection.fetchNew();      
     },
     render: function() {
+      var articleView = new ArticleView(this.collection.newsURL);    
+      $(".article").append(articleView.render().el);
+
       this.$el.html(this.template());
       var self = this;
       this.collection.forEach(function(tweetModel){
@@ -136,36 +140,49 @@ $(function () {
     }
   })
   
+  var ArticleView = Backbone.View.extend({
+    initialize: function(url){
+      this.newsURL = url;      
+      $(".article").empty();           
+    },
+    template : _.template($("#article-template").html()),
+    render : function() {         
+      var that = this
+      $.ajax("article", {
+        type : "POST",
+        contentType : "application/json",
+        dataType : "json",
+        data : JSON.stringify({
+          "url" : this.newsURL
+        }),
+        success : function(result) {
+          that.$el.html(that.template(result));             
+        }
+      });         
+      return this;
+    },
+    events : {'click a.article_toggle' : 'articleToggling'},
+    articleToggling : function(e) {
+      $(".article_text").slideToggle("slow");
+      $(e.currentTarget).text(($(e.currentTarget).text() == 'Show Article') ? 'Hide Article': 'Show Article');
+    }   
+  });
 
-	   var ArticleView = Backbone.View.extend({
-		initialize: function(url){
-				     this.newsURL = url;      
-				     $(".article").empty();				     
-		},
-		template : _.template($("#article-template").html()),
-		render : function() {					
-					var that = this
-					$.ajax("article", {
-						type : "POST",
-						contentType : "application/json",
-						dataType : "json",
-						data : JSON.stringify({
-							"url" : this.newsURL
-						}),
-						success : function(result) {
-							that.$el.html(that.template(result));							
-						}
-					});					
-					return this;
-				},
-		events : {'click a.article_toggle' : 'articleToggling'},
-		articleToggling : function(e) {
-					$(".article_text").slideToggle("slow");
-					$(e.currentTarget).text(($(e.currentTarget).text() == 'Show Article') ? 'Hide Article': 'Show Article');
-				 }		
-		});
+  $(".instruction").dialog({
+    title: "Evaluation Instruction",
+    modal: true,
+    buttons: [
+      { text: "Start Evaluation!",
+        click: function() {
+          $(this).dialog( "close" );
+        }
+      }
+    ]
+  }); 
 
   var tweets = new TweetsCollection();  
-  var tweetCollectionView = new TweetCollectionView({collection: tweets});  
-  $(".evaluation").append(tweetCollectionView.render().el);
+  var tweetCollectionView = new TweetCollectionView({collection: tweets});
+  $(".evaluation").append(tweetCollectionView.render().el) 
+
+ 
 });
