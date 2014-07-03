@@ -160,7 +160,7 @@ def evaluation_run(query_url):
         for ranker in EVALUATION_RANKERS:
             ranker_result = run(url=query_url, gatherer="terms", rankers=ranker.split(','),
                 filters=[], fields=['user.screen_name', 'created_at', 'text'],
-                tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=100)
+                tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_COLLECTION, limit=100)
             chosen_subset = choose_tweets(ranker_result)
             for score, tweet in chosen_subset:
                 try:
@@ -170,7 +170,7 @@ def evaluation_run(query_url):
                     tweet_object = {'tweet': tweet, 'scores': [{ranker: score}]}
                     tweet_objects.append(tweet_object)
                     tweet_ids.append(tweet['_id'])
-        #cache_collection.update({'query_url': query_url, 'tweets': tweet_objects})
+        cache_collection.insert({'query_url': query_url, 'tweets': tweet_objects})
         return_list = [(0, tweet['tweet']) for tweet in tweet_objects]
 
     else:
