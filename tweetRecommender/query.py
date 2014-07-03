@@ -178,7 +178,7 @@ def evaluation_run(query_url):
                     tweet_object = {'tweet': tweet, 'scores': [{ranker: score}]}
                     tweet_objects.append(tweet_object)
                     tweet_ids.append(tweet['_id'])
-        #cache_collection.update({'query_url': query_url, 'tweets': tweet_objects})
+        cache_collection.insert({'query_url': query_url, 'tweets': tweet_objects})
         return_list = [(0, tweet['tweet']) for tweet in tweet_objects]
 
     else:
