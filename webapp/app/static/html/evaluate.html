@@ -14,7 +14,6 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.syphon/0.4.1/backbone.syphon.min.js"></script>
     <script src="http://cdn.craig.is/js/mousetrap/mousetrap.min.js?9d308"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-    <script src="http://bootstrap.ourjs.com/js/jquery.bootstrap.min.js"></script>
     
 
     <script type="text/template" id ="tweet-template">
@@ -60,20 +59,38 @@
 
       <!-- Begin page content -->
       <div class="container">
-        <div class="instruction">
-          <h5>Thanks for taking part in the manual evaluation of our tool 'tweetRecommender'.</h5>
 
-          <p>In the following we will show recent news articles on various topics.
-          For each article our tool recommends a number of tweets.<br />
-          Your task is to decide whether a tweet is relevant for the given news article.<br />
-          You may use the following list as indicators for a relevant tweet:
-          <ul>
-            <li>adds information</li>
-            <li>fits to topic</li>
-            <li>confirms article (with another source/without repeating the headline)</li>
-            <li>interesting opinion</li>
-            <li>filled with argument(s)</li>
-          </ul>
+        <!-- Modal -->
+        <div class="modal fade" id="instructionModal" tabindex="-1" role="dialog" aria-labelledby="instructionModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="instructionModalLabel">Evaluation Instruction</h4>
+              </div>
+              <div class="modal-body">
+                <h5>Thanks for taking part in the manual evaluation of our tool 'tweetRecommender'.</h5>
+
+                <p>In the following we will show recent news articles on various topics.
+                For each article our tool recommends a number of tweets.<br />
+                Your task is to decide whether a tweet is relevant for the given news article.<br />
+                You may use the following list as indicators for a relevant tweet:
+                <ul>
+                  <li>adds information</li>
+                  <li>fits to topic</li>
+                  <li>confirms article (with another source/without repeating the headline)</li>
+                  <li>interesting opinion</li>
+                  <li>filled with argument(s)</li>
+                </ul>
+                <hr />
+                <div style="text-align: center;"><img src="static/img/navigation.png" /></div>
+                <h5>You can use your arrow keys to navigate and rate the tweets</h5>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Start Evaluation!</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div>

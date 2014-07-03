@@ -164,17 +164,7 @@ $(function () {
     }   
   });
 
-  $(".instruction").dialog({
-    title: "Evaluation Instruction",
-    modal: true,
-    buttons: [
-      { text: "Start Evaluation!",
-        click: function() {
-          $(this).dialog( "close" );
-        }
-      }
-    ]
-  }); 
+  $("#instructionModal").modal("show")
 
   var tweets = new TweetsCollection(); 
   var tweetCollectionView = new TweetCollectionView({collection: tweets});

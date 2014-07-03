@@ -92,6 +92,9 @@ input[type="checkbox"] {
   margin-right: 5px;
 }
 
+.modal-body {
+    max-height: 800px;
+}
 
 
 /* Tweet template CSS
@@ -231,4 +234,18 @@ input[type="checkbox"] {
 
 .article_buttons {
   text-align: right
+}
+
+.article_text img {
+  visibility: hidden;
+  display: none;
+}
+
+.article_text p {
+  padding: 0px;
+  margin: 0 0 4px;
+}
+
+.article_text blockquote p {
+  font-size: 12px;
 }
