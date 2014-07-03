@@ -26,7 +26,7 @@ FILTER_MODULES = cfg['filter'].split(',')
 TWEETS_COLLECTION = 'tweets'
 WEBPAGES_COLLECTION = 'webpages'
 TWEETS_SUBSAMPLE = 'sample_tweets'
-WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
+WEBPAGES_SUBSAMPLE = 'sample_webpages'
 
 EVALUATION_RANKERS = ['language_model', 'text_overlap']
 CACHED_RESULTS_COLLECTION = 'evaluation_cache'
