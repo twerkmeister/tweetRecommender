@@ -3,6 +3,7 @@ from tweetRecommender.query import evaluation_run
 from tweetRecommender.mongo import mongo
 from tweetRecommender import machinery
 from tweetRecommender.query import get_webpage
+from tweetRecommender.query import get_webpage_for_id
 from tweetRecommender import log
 
 from app import app
@@ -142,8 +143,9 @@ def evaluation():
 @app.route("/evaluation/next")
 def evaluation_next():
     url = random_evaluation_url()
+    webpage = get_webpage(url, mongo.coll(WEBPAGES_COLLECTION))
     tweets = run_evaluation_query(url)
-    result = {"url": url, "tweets": tweets}
+    result = {"url": url, "tweets": tweets, "newsId": str(webpage["_id"])}
     return jsonify(result)
 
 
@@ -151,17 +153,12 @@ def evaluation_next():
 def impressum():
     return send_file("static/html/impressum.html")
 
-@app.route("/article", methods=['POST'])
-def get_article():
-    article = ""    
-    try:        
-        url = request.json["url"]                             
-        object = get_webpage(url, mongo.coll(WEBPAGES_COLLECTION))        
-        if "article" in object:
-            article = object["article"].encode("utf-8")
-        else:
-            article = object["content"].encode("utf-8")                                    
-    except Exception, e:
-        import traceback; traceback.print_exc()
-    finally:
-        return jsonify({"article" : article, "url" : url})
+@app.route("/article/<webpage_id>", methods=['GET'])
+def get_article(webpage_id):
+    webpage = get_webpage_for_id(webpage_id, mongo.coll(WEBPAGES_COLLECTION))
+    article = "No article found with id %s!" % webpage_id
+    url = ""
+    if webpage:
+        article = webpage.get("article", webpage["content"]).encode("utf-8")
+        url = webpage["url"]
+    return jsonify({"article": article, "_id": webpage_id, "url": url})

@@ -14,6 +14,7 @@ from tweetRecommender import log
 
 import six
 import random
+from bson.objectid import ObjectId
 
 
 SCORE_WEIGHT_SEP = ':'
@@ -41,6 +42,10 @@ def get_webpage(uri, webpages_coll):
         #XXX webpage not found?  put it into the pipeline
         raise NotImplementedError
     return webpage
+
+def get_webpage_for_id(object_id, webpages_coll):
+    return webpages_coll.find_one(dict(_id = ObjectId(object_id)))
+
 
 def query(uri, gather_func, score_funcs, filter_funcs, fields,
           tweets_coll, webpages_coll, limit):

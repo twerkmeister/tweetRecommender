@@ -60,6 +60,7 @@ $(function () {
 
       }
       this.newsURL = response.url
+      this.newsId = response.newsId
       return response.tweets
 
     },
@@ -125,9 +126,6 @@ $(function () {
       this.collection.fetchNew();      
     },
     render: function() {
-      var articleView = new ArticleView(this.collection.newsURL);    
-      $(".article").append(articleView.render().el);
-
       this.$el.html(this.template());
       var self = this;
       this.collection.forEach(function(tweetModel){
@@ -137,26 +135,26 @@ $(function () {
       return this;
     }
   })
+
+  var ArticleModel = Backbone.Model.extend({
+    urlRoot: "/article",
+    defaults: {
+      url: "",
+      article: ""
+    }
+  })
   
   var ArticleView = Backbone.View.extend({
-    initialize: function(url){
-      this.newsURL = url;      
-      $(".article").empty();           
+    initialize: function(){
+      this.listenTo(this.collection, "sync", function(){
+        this.model.set("id", this.collection.newsId);
+        this.model.fetch();
+      });
+      this.listenTo(this.model, "sync", this.render);             
     },
     template : _.template($("#article-template").html()),
-    render : function() {         
-      var that = this
-      $.ajax("article", {
-        type : "POST",
-        contentType : "application/json",
-        dataType : "json",
-        data : JSON.stringify({
-          "url" : this.newsURL
-        }),
-        success : function(result) {
-          that.$el.html(that.template(result));             
-        }
-      });         
+    render : function() {
+      this.$el.html(this.template(this.model.toJSON()));
       return this;
     },
     events : {'click a.article_toggle' : 'articleToggling'},
@@ -178,9 +176,12 @@ $(function () {
     ]
   }); 
 
-  var tweets = new TweetsCollection();  
+  var tweets = new TweetsCollection(); 
   var tweetCollectionView = new TweetCollectionView({collection: tweets});
-  $(".evaluation").append(tweetCollectionView.render().el) 
+  var article = new ArticleModel();
+  var ArticleView = new ArticleView({collection: tweets, model: article});
+  $(".evaluation").append(tweetCollectionView.render().el)
+  $(".article").append(ArticleView.render().el)
 
  
 });
