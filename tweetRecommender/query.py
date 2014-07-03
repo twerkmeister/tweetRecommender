@@ -28,6 +28,8 @@ WEBPAGES_COLLECTION = 'webpages'
 TWEETS_SUBSAMPLE = 'sample_tweets'
 WEBPAGES_SUBSAMPLE = 'sample_webpages'
 
+EVALUATION_GATHERER = "terms"
+EVALUATION_FILTERS = []
 EVALUATION_RANKERS = ['language_model', 'text_overlap']
 CACHED_RESULTS_COLLECTION = 'evaluation_cache'
 
@@ -158,8 +160,9 @@ def evaluation_run(query_url):
         tweet_ids = []
         tweet_objects = []
         for ranker in EVALUATION_RANKERS:
-            ranker_result = run(url=query_url, gatherer="terms", rankers=ranker.split(','),
-                filters=[], fields=['user.screen_name', 'created_at', 'text'],
+            rankers = ranker.split(',')
+            ranker_result = run(url=query_url, gatherer=EVALUATION_GATHERER, rankers=rankers,
+                filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
                 tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=100)
             chosen_subset = choose_tweets(ranker_result)
             for score, tweet in chosen_subset:

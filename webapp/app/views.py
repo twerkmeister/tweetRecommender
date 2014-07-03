@@ -28,22 +28,6 @@ TWEETS_COLLECTION = 'sample_tweets'
 WEBPAGES_COLLECTION = 'sample_webpages'
 LIMIT = 10
 
-EVALUATION_GATHERING = "terms"
-EVALUATION_FILTERING = []
-EVALUATION_RANKING = [["language_model"], ["lda_cossim"], ["text_overlap", "date", "follower_count"]]
-
-class MethodSet:
-    def __init__(self, gatherer, filters, rankers):
-        self.gatherer = gatherer
-        self.filters = filters
-        self.rankers = rankers
-
-EVALUATION_CANDIDATES = [
-    MethodSet("terms", ["expected_time"], ["language_model"]),
-    MethodSet("terms", ["expected_time"], ["lda_cossim"]),
-    MethodSet("terms", ["expected_time"], ["text_overlap", "date", "follower_count"])
-]
-
 def random_url():
     return mongo.random(WEBPAGES_COLLECTION)['url']
 
@@ -114,10 +98,6 @@ def run_evaluation_query(url):
         for score, tweet in result:
             tweet["_id"] = str(tweet["_id"])
             tweet["score"] = score
-            tweet["options"] = {}
-            tweet["options"]["gatheringMethod"] = "gatheringMethod"
-            tweet["options"]["filteringMethods"] = "filteringMethods"
-            tweet["options"]["rankingMethods"] = "rankingMethods"
 
         #consolidate score and tweets
         result = [tweet for score, tweet in result]
@@ -144,11 +124,12 @@ def options():
 @app.route("/evaluate", methods=['POST'])
 def evaluate():
     uid = session.get('uid', '')
-    tweet = request.json['tweetId']
+    tweetId = request.json['tweetId']
     webpage = request.json['webpage']
+    rating = request.json['rating']
 
-    mongo.db.evaluation.update(
-        dict(tweet=tweet, uid=uid, webpage=webpage)
+    mongo.db.evaluation.insert(
+        dict(tweet=tweetId, uid=uid, webpage=webpage, rating=rating)
     )
     return jsonify({"success": 1})
 
