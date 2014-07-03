@@ -34,7 +34,6 @@ $(function () {
         contentType: "application/json",
         dataType: "json",
         data: JSON.stringify({
-          options: this.get("options"),
           tweetId: this.get("_id"),
           rating: score,
           webpage: this.collection.newsURL
