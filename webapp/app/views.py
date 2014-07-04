@@ -27,6 +27,7 @@ URLS = file(URLS_FILE).read().split("\n")
 
 TWEETS_COLLECTION = 'sample_tweets'
 WEBPAGES_COLLECTION = 'sample_webpages'
+EVALUATION_COLLECTION = 'evaluation'
 LIMIT = 10
 
 def random_url():
@@ -158,7 +159,12 @@ def get_article(webpage_id):
     webpage = get_webpage_for_id(webpage_id, mongo.coll(WEBPAGES_COLLECTION))
     article = "No article found with id %s!" % webpage_id
     url = ""
+    num_articles = get_evaluated_articles()
     if webpage:
         article = webpage.get("article", webpage["content"]).encode("utf-8")
         url = webpage["url"]
-    return jsonify({"article": article, "_id": webpage_id, "url": url})
+    return jsonify({"article": article, "_id": webpage_id, "url": url, 'num_articles' : str(num_articles)})
+
+def get_evaluated_articles():
+    uid = session.get('uid', '')    
+    return len(mongo.coll(EVALUATION_COLLECTION).find({'uid' : uid},{'webpage' : 1}).distinct('webpage'))    

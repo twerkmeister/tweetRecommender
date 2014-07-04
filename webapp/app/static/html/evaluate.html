@@ -26,10 +26,12 @@
         </div>
     </script>
     
-    <script type="text/template" id ="article-template">	 	 
-        <div class="article_buttons">       
-         	<a href="#article" class="article_toggle">Hide Article</a> 
-          |     	      
+    <script type="text/template" id ="article-template">			 	
+        <div class="article_buttons">
+			<span class = "evaluated_articles">
+				<%= num_articles %> out of 25
+			</span>
+         	<a href="#article" class="article_toggle">Hide Article</a>           |     	      
   		    <a href="<%= url %>" class="article_link" target="_blank">Read in New Tab</a>  
         </div>    	      
       	<div id = "article_text" class="article_text">	

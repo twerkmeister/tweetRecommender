@@ -253,6 +253,14 @@ input[type="checkbox"] {
   font-size: 12px;
 }
 
+.evaluated_articles {
+	float: left;
+	font-weight: bold;
+	font-size: 20;
+	color: cornflowerblue;
+	font-family: inherit;
+}
+
 .instruction_list h6 {
   margin-bottom: 0;
 }
