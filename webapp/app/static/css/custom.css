@@ -249,3 +249,16 @@ input[type="checkbox"] {
 .article_text blockquote p {
   font-size: 12px;
 }
+
+.instruction_list h6 {
+  margin-bottom: 0;
+}
+
+.instruction_list ul {
+  list-style-type: none;
+}
+
+.instruction_list ul li:before {
+  content: "...";
+  margin-right: 6px;
+}
