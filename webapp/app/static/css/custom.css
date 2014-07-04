@@ -223,13 +223,16 @@ input[type="checkbox"] {
 	max-height: 300px;
 	overflow: auto; 
 	margin-top:10px;	
+  border: 10px solid white;
+  padding: 15px;
+  background: #eee;
+  box-shadow: 0 0 15px #111;
 }
 
 .article{
 	margin-top:30px;
 	margin-bottom:30px;
-  border: 1px solid gray;
-  padding: 15px;
+
 }
 
 .article_buttons {
