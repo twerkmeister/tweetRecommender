@@ -140,7 +140,8 @@ $(function () {
     urlRoot: "article",
     defaults: {
       url: "",
-      article: ""
+      article: "",
+      num_articles: ""
     }
   })
   
@@ -153,7 +154,7 @@ $(function () {
       this.listenTo(this.model, "sync", this.render);             
     },
     template : _.template($("#article-template").html()),
-    render : function() {
+    render : function() {      
       this.$el.html(this.template(this.model.toJSON()));
       return this;
     },
@@ -164,17 +165,7 @@ $(function () {
     }   
   });
 
-  $(".instruction").dialog({
-    title: "Evaluation Instruction",
-    modal: true,
-    buttons: [
-      { text: "Start Evaluation!",
-        click: function() {
-          $(this).dialog( "close" );
-        }
-      }
-    ]
-  }); 
+  $("#instructionModal").modal("show")
 
   var tweets = new TweetsCollection(); 
   var tweetCollectionView = new TweetCollectionView({collection: tweets});

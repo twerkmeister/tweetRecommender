@@ -92,6 +92,9 @@ input[type="checkbox"] {
   margin-right: 5px;
 }
 
+.modal-body {
+    max-height: 800px;
+}
 
 
 /* Tweet template CSS
@@ -220,15 +223,53 @@ input[type="checkbox"] {
 	max-height: 300px;
 	overflow: auto; 
 	margin-top:10px;	
+  border: 10px solid white;
+  padding: 15px;
+  background: #eee;
+  box-shadow: 0 0 15px #111;
 }
 
 .article{
 	margin-top:30px;
 	margin-bottom:30px;
-  border: 1px solid gray;
-  padding: 15px;
+
 }
 
 .article_buttons {
   text-align: right
+}
+
+.article_text img {
+  visibility: hidden;
+  display: none;
+}
+
+.article_text p {
+  padding: 0px;
+  margin: 0 0 4px;
+}
+
+.article_text blockquote p {
+  font-size: 12px;
+}
+
+.evaluated_articles {
+	float: left;
+	font-weight: bold;
+	font-size: 20;
+	color: cornflowerblue;
+	font-family: inherit;
+}
+
+.instruction_list h6 {
+  margin-bottom: 0;
+}
+
+.instruction_list ul {
+  list-style-type: none;
+}
+
+.instruction_list ul li:before {
+  content: "...";
+  margin-right: 6px;
 }
