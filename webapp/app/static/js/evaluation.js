@@ -137,7 +137,7 @@ $(function () {
   })
 
   var ArticleModel = Backbone.Model.extend({
-    urlRoot: "/article",
+    urlRoot: "article",
     defaults: {
       url: "",
       article: ""
