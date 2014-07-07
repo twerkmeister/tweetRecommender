@@ -29,7 +29,7 @@
     <script type="text/template" id ="article-template">			 	
         <div class="article_buttons">
 			<span class = "evaluated_articles">
-				<%= num_articles %> out of 25
+				<%= num_articles %> out of 25 evaluated
 			</span>
          	<a href="#article" class="article_toggle">Hide Article</a>           |     	      
   		    <a href="<%= url %>" class="article_link" target="_blank">Read in New Tab</a>  
@@ -105,6 +105,14 @@
                 <a class="btn btn-default pull-left" target="_blank" href="about">More information on the project</a>
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Start Evaluation!</button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal fade bs-example-modal-sm" id="finishModal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+              Thank you for finishing the evaluation!
             </div>
           </div>
         </div>

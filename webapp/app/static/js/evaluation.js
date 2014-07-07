@@ -173,6 +173,5 @@ $(function () {
   var ArticleView = new ArticleView({collection: tweets, model: article});
   $(".evaluation").append(tweetCollectionView.render().el)
   $(".article").append(ArticleView.render().el)
-
  
 });
