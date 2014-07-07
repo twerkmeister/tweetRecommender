@@ -144,6 +144,7 @@ def evaluation():
 @app.route("/evaluation/next")
 def evaluation_next():
     url = random_evaluation_url()
+    log.info("Current URL: %s" % url)
     webpage = get_webpage(url, mongo.coll(WEBPAGES_COLLECTION))
     tweets = run_evaluation_query(url)
     result = {"url": url, "tweets": tweets, "newsId": str(webpage["_id"])}
