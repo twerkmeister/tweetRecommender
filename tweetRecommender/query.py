@@ -96,12 +96,17 @@ def rank(tweets, score_funcs, webpage, limit):
     tweets_index = {}
     zip_score_rank = list(zip(score_funcs, rankings))
     with LOG.measured("Scoring tweets"):
-        for tweet in tweets:
-            key = tweet['tweet_id']
-            tweets_index[key] = tweet #XXX minimize
-            for score_func, ranking in zip_score_rank:
-                score = score_func(tweet, webpage)
-                ranking.append((score, key))
+        try:
+            for tweet in tweets:
+                key = tweet['tweet_id']
+                tweets_index[key] = tweet #XXX minimize
+                for score_func, ranking in zip_score_rank:
+                    score = score_func(tweet, webpage)
+                    ranking.append((score, key))
+        except:
+            LOG.exception("Error ranking tweet %s with %s.%s (%r)" %
+                    (key, score_func.__module__, score_func, tweet))
+            raise
 
     if nvotes == 1:
         LOG.debug("Skipped voting;  monarchy.")
@@ -111,11 +116,11 @@ def rank(tweets, score_funcs, webpage, limit):
         with LOG.measured("Voting"):
             overall = vote(rankings, weights)
 
-    LOG.debug("Sorting..")        
+    LOG.debug("Sorting..")
     result = sorted(overall, key=operator.itemgetter(0), reverse=True)
-    
+
     LOG.debug("Diversity..")
-    result = diversity(result, limit, tweets_index)            
+    result = diversity(result, limit, tweets_index)
     return [(score, tweets_index[tweet]) for score, tweet in result]
 
 def _required_fields(funcs):
