@@ -273,3 +273,6 @@ input[type="checkbox"] {
   content: "...";
   margin-right: 6px;
 }
+
+
+  .modal { position: absolute; }
