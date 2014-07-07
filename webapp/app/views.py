@@ -24,6 +24,7 @@ log.basicConfig(
 
 URLS_FILE = os.path.join(os.path.dirname(__file__), "urls.txt")
 URLS = file(URLS_FILE).read().split("\n")
+log.info("URLS: %s" % URLS)
 
 TWEETS_COLLECTION = 'sample_tweets'
 WEBPAGES_COLLECTION = 'sample_webpages'
