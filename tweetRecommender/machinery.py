@@ -19,7 +19,7 @@ def load_component(package, module, component):
         raise ImportError("error importing '%s.%s': %s" % (package, module, e))
     try:
         return getattr(mod, component)
-    except AttributeError, e
+    except AttributeError, e:
         raise ImportError("error importing '%s.%s.%s': %s" %
                 (package, module, component, e))
 
