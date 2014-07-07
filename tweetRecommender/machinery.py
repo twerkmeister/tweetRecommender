@@ -12,6 +12,7 @@ FILTER_METHOD = 'filter'
 
 
 def load_component(package, module, component):
+    package, module = package.strip(), module.strip()
     mod = importlib.import_module(package + '.' + module)
     return getattr(mod, component)
 
