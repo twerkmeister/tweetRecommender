@@ -55,6 +55,7 @@ def gather(webpage, gather_func, filter_funcs, required_fields, coll):
     LOG.info("Retrieving criteria from %s.%s..",
             gather_func.__module__, gather_func)
     find_criteria = gather_func(webpage)
+    required_fields = set(required_fields)
 
     if find_criteria is None:
         raise TypeError(
