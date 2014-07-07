@@ -31,7 +31,7 @@ WEBPAGES_SUBSAMPLE = 'sample_webpages'
 
 EVALUATION_GATHERER = "terms"
 EVALUATION_FILTERS = []
-EVALUATION_RANKERS = ['language_model', 'text_overlap']
+EVALUATION_RANKERS = ['lda_cossim', 'language_model', 'text_overlap, normalized_follower_count']
 CACHED_RESULTS_COLLECTION = 'evaluation_cache'
 
 LOG = log.getLogger('tweetRecommender.query')
