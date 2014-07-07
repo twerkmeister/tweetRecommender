@@ -153,6 +153,10 @@ def evaluation_next():
 def impressum():
     return send_file("static/html/impressum.html")
 
+@app.route("/about")
+def about():
+    return send_file("static/html/about.html")
+
 @app.route("/article/<webpage_id>", methods=['GET'])
 def get_article(webpage_id):
     webpage = get_webpage_for_id(webpage_id, mongo.coll(WEBPAGES_COLLECTION))
