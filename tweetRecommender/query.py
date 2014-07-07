@@ -105,7 +105,7 @@ def rank(tweets, score_funcs, webpage, limit):
                     ranking.append((score, key))
         except:
             LOG.exception("Error ranking tweet %s with %s.%s (%r)" %
-                    (key, score_func.__module__, score_func, tweet)
+                    (key, score_func.__module__, score_func, tweet))
             raise
 
     if nvotes == 1:
