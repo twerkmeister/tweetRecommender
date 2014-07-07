@@ -137,10 +137,11 @@ $(function () {
   })
 
   var ArticleModel = Backbone.Model.extend({
-    urlRoot: "/article",
+    urlRoot: "article",
     defaults: {
       url: "",
-      article: ""
+      article: "",
+      num_articles: ""
     }
   })
   
@@ -153,7 +154,7 @@ $(function () {
       this.listenTo(this.model, "sync", this.render);             
     },
     template : _.template($("#article-template").html()),
-    render : function() {
+    render : function() {      
       this.$el.html(this.template(this.model.toJSON()));
       return this;
     },

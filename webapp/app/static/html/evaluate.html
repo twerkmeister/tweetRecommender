@@ -1,9 +1,9 @@
 <html>
   <head>
     <title>Tweet Recommender</title>
-    <link href="/static/css/bootstrap.min.css" rel="stylesheet" media="screen">
-    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
-    <link href="/static/css/custom.css" rel="stylesheet">
+    <link href="static/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="static/css/custom.css" rel="stylesheet">
     <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet">
     
     <script src="http://code.jquery.com/jquery-latest.js"></script>
@@ -26,10 +26,12 @@
         </div>
     </script>
     
-    <script type="text/template" id ="article-template">	 	 
-        <div class="article_buttons">       
-         	<a href="#article" class="article_toggle">Hide Article</a> 
-          |     	      
+    <script type="text/template" id ="article-template">			 	
+        <div class="article_buttons">
+			<span class = "evaluated_articles">
+				<%= num_articles %> out of 25
+			</span>
+         	<a href="#article" class="article_toggle">Hide Article</a>           |     	      
   		    <a href="<%= url %>" class="article_link" target="_blank">Read in New Tab</a>  
         </div>    	      
       	<div id = "article_text" class="article_text">	
@@ -135,7 +137,7 @@
     <div id="footer">
       <div class="container">
         <p class="muted credit">Masterproject summer term 2014 at <a href="https://hpi.de" target="_blank">HPI Potsdam</a> "Finding relevant tweets for news". Find us <a href="https://github.com/twerkmeister/tweetRecommender" target="_blank">@github</a>.
-          <a class="impressum-link" href="/impressum">Impressum</a> </p>
+          <a class="impressum-link" href="impressum">Impressum</a> </p>
       </div>
     </div>
   <script type="text/javascript" src="static/js/evaluation.js"></script>
