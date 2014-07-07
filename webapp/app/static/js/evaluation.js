@@ -78,11 +78,17 @@ $(function () {
       this.at(this.current_tweet).rank(score);
       this.remove(this.at(this.current_tweet));
       this.moveTweetCursor(0);
-      if(this.length == 0)
-        this.fetchNew()
+      if(this.length == 0) {
+        if (finished) {
+          $("#instructionModal").modal("hide");
+          $("#finishModal").modal("show");
+        }
+        else
+          this.fetchNew()
+      }
     },
     fetchNew: function() {    
-      this.fetch()
+      this.fetch();
     }
   });
 
@@ -156,13 +162,15 @@ $(function () {
     template : _.template($("#article-template").html()),
     render : function() {      
       this.$el.html(this.template(this.model.toJSON()));
+      if (this.model.get("num_articles") == "24")
+        finished = true;
       return this;
     },
     events : {'click a.article_toggle' : 'articleToggling'},
     articleToggling : function(e) {
       $(".article_text").slideToggle("slow");
       $(e.currentTarget).text(($(e.currentTarget).text() == 'Show Article') ? 'Hide Article': 'Show Article');
-    }   
+    },  
   });
 
   $("#instructionModal").modal("show")
@@ -173,5 +181,12 @@ $(function () {
   var ArticleView = new ArticleView({collection: tweets, model: article});
   $(".evaluation").append(tweetCollectionView.render().el)
   $(".article").append(ArticleView.render().el)
+
+  var finished = false;
+
+  // if (finished) {
+  //   $("#instructionModal").modal("hide");
+  //   $("#finishModal").modal("show");
+  // }
  
 });
