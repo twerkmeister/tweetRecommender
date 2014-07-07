@@ -24,7 +24,7 @@ $(function () {
   Mousetrap.bind("up", up);
   Mousetrap.bind("down", down);
   Mousetrap.bind("left", rankNonRelevant);
-  Mousetrap.bind("right", rankRelevant);
+  Mousetrap.bind("right", rankRelevant);    
 
   var TweetModel = Backbone.Model.extend({
     rank: function(score){
@@ -34,10 +34,9 @@ $(function () {
         contentType: "application/json",
         dataType: "json",
         data: JSON.stringify({
-          url: this.collection.url,
           tweetId: this.get("_id"),
           rating: score,
-          options: this.collection.newsURL,
+          webpage: this.collection.newsURL
         })
       });
     }
@@ -53,15 +52,15 @@ $(function () {
         if(this.length > 0)
           this.at(this.current_tweet).trigger("highlight");
         else
-          this.fetch();});
+          this.fetchNew();});
     },
     parse: function(response){
       if(response.tweets.length == 0){
         toastr.error("Error calculating a ranking");
 
       }
-      this.options = response.options
       this.newsURL = response.url
+      this.newsId = response.newsId
       return response.tweets
 
     },
@@ -80,7 +79,10 @@ $(function () {
       this.remove(this.at(this.current_tweet));
       this.moveTweetCursor(0);
       if(this.length == 0)
-        this.fetch()
+        this.fetchNew()
+    },
+    fetchNew: function() {    
+      this.fetch()
     }
   });
 
@@ -102,7 +104,7 @@ $(function () {
         this.$el.addClass("moveleft");
     },
     render: function() {
-      console.log(this.template(this.model.toJSON()));
+      //console.log(this.template(this.model.toJSON()));
       this.$el.html(this.template(this.model.toJSON()));
       return this;
     },
@@ -117,8 +119,11 @@ $(function () {
   var TweetCollectionView = Backbone.View.extend({
     template: _.template("<div></div>"),
     initialize: function(){
-      this.listenTo(this.collection, "sync", function(){this.render(); this.collection.first().trigger("highlight");})
-      this.collection.fetch();
+      this.listenTo(this.collection, "sync", function(){
+        this.render(); 
+        this.collection.first().trigger("highlight");               
+      })
+      this.collection.fetchNew();      
     },
     render: function() {
       this.$el.html(this.template());
@@ -126,12 +131,48 @@ $(function () {
       this.collection.forEach(function(tweetModel){
         var tweetView = new TweetView({model: tweetModel})
         self.$el.append(tweetView.render().el)
-      });
+      });      
       return this;
     }
   })
 
-  var tweets = new TweetsCollection();
+  var ArticleModel = Backbone.Model.extend({
+    urlRoot: "article",
+    defaults: {
+      url: "",
+      article: "",
+      num_articles: ""
+    }
+  })
+  
+  var ArticleView = Backbone.View.extend({
+    initialize: function(){
+      this.listenTo(this.collection, "sync", function(){
+        this.model.set("id", this.collection.newsId);
+        this.model.fetch();
+      });
+      this.listenTo(this.model, "sync", this.render);             
+    },
+    template : _.template($("#article-template").html()),
+    render : function() {      
+      this.$el.html(this.template(this.model.toJSON()));
+      return this;
+    },
+    events : {'click a.article_toggle' : 'articleToggling'},
+    articleToggling : function(e) {
+      $(".article_text").slideToggle("slow");
+      $(e.currentTarget).text(($(e.currentTarget).text() == 'Show Article') ? 'Hide Article': 'Show Article');
+    }   
+  });
+
+  $("#instructionModal").modal("show")
+
+  var tweets = new TweetsCollection(); 
   var tweetCollectionView = new TweetCollectionView({collection: tweets});
-  $(".evaluation").append(tweetCollectionView.render().el);
+  var article = new ArticleModel();
+  var ArticleView = new ArticleView({collection: tweets, model: article});
+  $(".evaluation").append(tweetCollectionView.render().el)
+  $(".article").append(ArticleView.render().el)
+
+ 
 });

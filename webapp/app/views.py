@@ -1,9 +1,10 @@
-import random
-
 from tweetRecommender.query import run as recommend
+from tweetRecommender.query import evaluation_run
 from tweetRecommender.mongo import mongo
 from tweetRecommender import machinery
 from tweetRecommender.query import get_webpage
+from tweetRecommender.query import get_webpage_for_id
+from tweetRecommender import log
 
 from app import app
 
@@ -12,15 +13,28 @@ from flask import render_template, redirect, send_file
 from flask import url_for, jsonify
 
 import uuid
+from itertools import chain
+import random
+import os
 
+log.basicConfig(
+        level = log.INFO,
+        format = "[%(levelname)s] %(message)s",
+    )
 
-WEBPAGES_COLLECTION = 'sample_webpages'
+URLS_FILE = os.path.join(os.path.dirname(__file__), "urls.txt")
+URLS = file(URLS_FILE).read().split("\n")
+
 TWEETS_COLLECTION = 'sample_tweets'
+WEBPAGES_COLLECTION = 'sample_webpages'
+EVALUATION_COLLECTION = 'evaluation'
 LIMIT = 10
-
 
 def random_url():
     return mongo.random(WEBPAGES_COLLECTION)['url']
+
+def random_evaluation_url():
+    return random.choice(URLS)
 
 def random_options():
     gather = random.choice(list(machinery.find_components(
@@ -35,7 +49,6 @@ def random_options():
         filteringMethods = filters,
         rankingMethods = rankers,
     )
-
 
 @app.route("/", methods=['GET'])
 def index():
@@ -55,16 +68,41 @@ def query():
 
     return jsonify(run_query(url, gatheringMethod, rankingMethods, filteringMethods))
 
-def run_query(url, gatheringMethod, rankingMethods, filteringMethods):
+def run_query(url, gatheringMethod, rankingMethods, filteringMethods, limit = LIMIT):
     result = {"webpage": "", "tweets": []}
     try:
         result["webpage"] = get_webpage(url, mongo.coll(WEBPAGES_COLLECTION))["url"].encode('utf-8')
         result["tweets"] = recommend(url, gatheringMethod, rankingMethods, filteringMethods,
                            ['user.screen_name', 'created_at', 'text'],
-                           TWEETS_COLLECTION, WEBPAGES_COLLECTION, LIMIT)
+                           TWEETS_COLLECTION, WEBPAGES_COLLECTION, limit)
 
         for score, tweet in result["tweets"]:
             tweet["_id"] = str(tweet["_id"])
+            tweet["score"] = score
+            tweet["options"] = {}
+            tweet["options"]["gatheringMethod"] = gatheringMethod
+            tweet["options"]["filteringMethods"] = filteringMethods
+            tweet["options"]["rankingMethods"] = rankingMethods
+
+        #consolidate score and tweets
+        result["tweets"] = [tweet for score, tweet in result["tweets"]]
+
+    except Exception, e:
+        import traceback; traceback.print_exc()
+    finally:
+        return result
+
+def run_evaluation_query(url):
+    result = []
+    try:
+        result = evaluation_run(url)
+
+        for score, tweet in result:
+            tweet["_id"] = str(tweet["_id"])
+            tweet["score"] = score
+
+        #consolidate score and tweets
+        result = [tweet for score, tweet in result]
 
     except Exception, e:
         import traceback; traceback.print_exc()
@@ -88,15 +126,12 @@ def options():
 @app.route("/evaluate", methods=['POST'])
 def evaluate():
     uid = session.get('uid', '')
-    tweet = request.json['tweetId']
-    options = request.json['options']
-    webpage = request.json['url']
+    tweetId = request.json['tweetId']
+    webpage = request.json['webpage']
     rating = request.json['rating']
 
-    mongo.db.evaluation.update(
-        dict(tweet=tweet, uid=uid, options=options, webpage=webpage),
-        {'$set': {'rankings.' + uid: rating}},
-        upsert=True
+    mongo.db.evaluation.insert(
+        dict(tweet=tweetId, uid=uid, webpage=webpage, rating=rating)
     )
     return jsonify({"success": 1})
 
@@ -108,13 +143,32 @@ def evaluation():
 
 @app.route("/evaluation/next")
 def evaluation_next():
-    url = random_url()
-    options = random_options()
-    results = run_query(url, options["gatheringMethod"], options["rankingMethods"], options["filteringMethods"])
-    response = dict({"options": options}, **dict({"url": url}, **results))
-    return jsonify(response)
+    url = random_evaluation_url()
+    webpage = get_webpage(url, mongo.coll(WEBPAGES_COLLECTION))
+    tweets = run_evaluation_query(url)
+    result = {"url": url, "tweets": tweets, "newsId": str(webpage["_id"])}
+    return jsonify(result)
 
 
 @app.route("/impressum")
 def impressum():
     return send_file("static/html/impressum.html")
+
+@app.route("/about")
+def about():
+    return send_file("static/html/about.html")
+
+@app.route("/article/<webpage_id>", methods=['GET'])
+def get_article(webpage_id):
+    webpage = get_webpage_for_id(webpage_id, mongo.coll(WEBPAGES_COLLECTION))
+    article = "No article found with id %s!" % webpage_id
+    url = ""
+    num_articles = get_evaluated_articles()
+    if webpage:
+        article = webpage.get("article", webpage["content"]).encode("utf-8")
+        url = webpage["url"]
+    return jsonify({"article": article, "_id": webpage_id, "url": url, 'num_articles' : str(num_articles)})
+
+def get_evaluated_articles():
+    uid = session.get('uid', '')    
+    return len(mongo.coll(EVALUATION_COLLECTION).find({'uid' : uid},{'webpage' : 1}).distinct('webpage'))    

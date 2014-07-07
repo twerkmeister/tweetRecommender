@@ -14,6 +14,7 @@ from tweetRecommender import log
 
 import six
 import random
+from bson.objectid import ObjectId
 
 
 SCORE_WEIGHT_SEP = ':'
@@ -26,9 +27,11 @@ FILTER_MODULES = cfg['filter'].split(',')
 TWEETS_COLLECTION = 'tweets'
 WEBPAGES_COLLECTION = 'webpages'
 TWEETS_SUBSAMPLE = 'sample_tweets'
-WEBPAGES_SUBSAMPLE = 'sample_webpages_test'
+WEBPAGES_SUBSAMPLE = 'sample_webpages'
 
-EVALUATION_RANKERS = ['lda_cossim', 'language_model', 'text_overlap, date']
+EVALUATION_GATHERER = "terms"
+EVALUATION_FILTERS = []
+EVALUATION_RANKERS = ['lda_cossim', 'language_model', 'text_overlap, normalized_follower_count']
 CACHED_RESULTS_COLLECTION = 'evaluation_cache'
 
 LOG = log.getLogger('tweetRecommender.query')
@@ -39,6 +42,10 @@ def get_webpage(uri, webpages_coll):
         #XXX webpage not found?  put it into the pipeline
         raise NotImplementedError
     return webpage
+
+def get_webpage_for_id(object_id, webpages_coll):
+    return webpages_coll.find_one(dict(_id = ObjectId(object_id)))
+
 
 def query(uri, gather_func, score_funcs, filter_funcs, fields,
           tweets_coll, webpages_coll, limit):
@@ -143,7 +150,6 @@ def run(url, gatherer, rankers, filters,
 
     tweets_coll = mongo.coll(tweets_ref)
     webpages_coll = mongo.coll(webpages_ref)
-
     return query(url, gather_func, score_funcs, filter_funcs, fields,
                  tweets_coll, webpages_coll, limit)
 
@@ -155,11 +161,15 @@ def choose_tweets(tweets):
 def evaluation_run(query_url):
     cache_collection = mongo.coll(CACHED_RESULTS_COLLECTION)
     cached_results = cache_collection.find_one({'query_url': query_url})
+
     if not cached_results:
         tweet_ids = []
         tweet_objects = []
-        for ranker in EVALUATION_RANKERS.split(','):
-            ranker_result = run(rankers=ranker)
+        for ranker in EVALUATION_RANKERS:
+            rankers = ranker.split(',')
+            ranker_result = run(url=query_url, gatherer=EVALUATION_GATHERER, rankers=rankers,
+                filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
+                tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=100)
             chosen_subset = choose_tweets(ranker_result)
             for score, tweet in chosen_subset:
                 try:
@@ -168,12 +178,12 @@ def evaluation_run(query_url):
                 except ValueError:
                     tweet_object = {'tweet': tweet, 'scores': [{ranker: score}]}
                     tweet_objects.append(tweet_object)
-                    tweet_ids.append(tweed['_id'])
+                    tweet_ids.append(tweet['_id'])
         cache_collection.insert({'query_url': query_url, 'tweets': tweet_objects})
-        return_list = [(tweet['scores'], tweet['tweet']) for tweet in tweet_objects]
+        return_list = [(0, tweet['tweet']) for tweet in tweet_objects]
+
     else:
-        return_list = [(tweet['scores'], tweet['tweet']) for tweet in cached_results['tweets']]
-    
+        return_list = [(0, tweet['tweet']) for tweet in cached_results['tweets']]
     random.shuffle(return_list)
     return return_list
 
