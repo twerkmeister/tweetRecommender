@@ -38,7 +38,7 @@ def random_evaluation_url():
     return random.choice(URLS)
 
 def next_evaluation_url(num_evaluated):
-    return URLS[num_evaluated]
+    return URLS[num_evaluated % len(URLS)]
 
 def random_options():
     gather = random.choice(list(machinery.find_components(
