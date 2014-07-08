@@ -23,7 +23,8 @@ log.basicConfig(
     )
 
 URLS_FILE = os.path.join(os.path.dirname(__file__), "urls.txt")
-URLS = file(URLS_FILE).read().split("\n")
+URLS = file(URLS_FILE).read().split("\n")[:-1]
+log.info("URLS: %s" % URLS)
 
 TWEETS_COLLECTION = 'sample_tweets'
 WEBPAGES_COLLECTION = 'sample_webpages'
@@ -35,6 +36,9 @@ def random_url():
 
 def random_evaluation_url():
     return random.choice(URLS)
+
+def next_evaluation_url(num_evaluated):
+    return URLS[num_evaluated % len(URLS)]
 
 def random_options():
     gather = random.choice(list(machinery.find_components(
@@ -143,7 +147,8 @@ def evaluation():
 
 @app.route("/evaluation/next")
 def evaluation_next():
-    url = random_evaluation_url()
+    url = next_evaluation_url(get_evaluated_articles())
+    log.info("Current URL: %s" % url)
     webpage = get_webpage(url, mongo.coll(WEBPAGES_COLLECTION))
     tweets = run_evaluation_query(url)
     result = {"url": url, "tweets": tweets, "newsId": str(webpage["_id"])}

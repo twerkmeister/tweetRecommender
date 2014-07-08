@@ -29,7 +29,7 @@
     <script type="text/template" id ="article-template">			 	
         <div class="article_buttons">
 			<span class = "evaluated_articles">
-				<%= num_articles %> out of 25
+				<%= num_articles %> out of 25 articles evaluated
 			</span>
          	<a href="#article" class="article_toggle">Hide Article</a>           |     	      
   		    <a href="<%= url %>" class="article_link" target="_blank">Read in New Tab</a>  
@@ -54,7 +54,7 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="brand" href="/">TweetRecommender</a>
+            <a class="brand" href="http://www.hpi.uni-potsdam.de/naumann/projekte/tweetrecommender/">TweetRecommender</a>
           </div>
         </div>
       </div>
@@ -102,8 +102,22 @@
                 <h5>You can use your arrow keys to navigate and rate the tweets</h5>
               </div>
               <div class="modal-footer">
-                <a class="btn btn-default pull-left" target="_blank" href="/about">More information on the project</a>
+                <!--<a class="btn btn-default pull-left" target="_blank" href="about">More information on the project</a>-->
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Start Evaluation!</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal fade bs-example-modal-sm" id="finishModal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="instructionModalLabel">The End</h4>
+              </div>
+              <div class="modal-body">
+                <p>Thank you for finishing the evaluation!</p>
               </div>
             </div>
           </div>
