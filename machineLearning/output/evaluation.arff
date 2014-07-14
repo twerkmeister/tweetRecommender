@@ -1,0 +1,5 @@
+@RELATION ratings
+@ATTRIBUTE lda_cossim NUMERIC
+@ATTRIBUTE language_model NUMERIC
+@ATTRIBUTE text_overlap_plus_normalized_follower_count NUMERIC
+@DATA
