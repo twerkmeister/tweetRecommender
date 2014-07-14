@@ -18,7 +18,7 @@ import random
 import os
 
 log.basicConfig(
-        level = log.INFO,
+        level = log.DEBUG,
         format = "[%(levelname)s] %(message)s",
     )
 

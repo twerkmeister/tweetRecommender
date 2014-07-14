@@ -32,7 +32,7 @@ WEBPAGES_SUBSAMPLE = 'sample_webpages'
 EVALUATION_GATHERER = "terms"
 EVALUATION_FILTERS = []
 EVALUATION_RANKERS = ['lda_cossim', 'language_model', 'text_overlap, normalized_follower_count']
-CACHED_RESULTS_COLLECTION = 'evaluation_cache'
+CACHED_RESULTS_COLLECTION = 'evaluation_cache_advanced'
 
 LOG = log.getLogger('tweetRecommender.query')
 
@@ -100,7 +100,7 @@ def rank(tweets, score_funcs, webpage, limit):
             for tweet in tweets:
                 key = tweet['tweet_id']
                 tweets_index[key] = tweet #XXX minimize
-                for score_func, ranking in zip_score_rank:
+                for score_func, ranking in zip_score_rank:    
                     score = score_func(tweet, webpage)
                     ranking.append((score, key))
         except:
@@ -119,8 +119,8 @@ def rank(tweets, score_funcs, webpage, limit):
     LOG.debug("Sorting..")
     result = sorted(overall, key=operator.itemgetter(0), reverse=True)
 
-    LOG.debug("Diversity..")
-    result = diversity(result, limit, tweets_index)
+    #LOG.debug("Diversity..")
+    #result = diversity(result, limit, tweets_index)
     return [(score, tweets_index[tweet]) for score, tweet in result]
 
 def _required_fields(funcs):
@@ -158,9 +158,12 @@ def run(url, gatherer, rankers, filters,
     return query(url, gather_func, score_funcs, filter_funcs, fields,
                  tweets_coll, webpages_coll, limit)
 
-def choose_tweets(tweets):
-    chosen = tweets[:5]
-    chosen.extend(tweets[-5:])
+def choose_tweets(tweets, query_url):
+    collection = mongo.coll("evaluation_cache")
+    query_results = collection.find_one({'query_url': query_url})
+    chosen = [(0, tweet['tweet']) for tweet in query_results['tweets']]
+    #chosen = tweets[:5]
+    #chosen.extend(tweets[95:100])
     return chosen
 
 def evaluation_run(query_url):
@@ -170,22 +173,36 @@ def evaluation_run(query_url):
     if not cached_results:
         tweet_ids = []
         tweet_objects = []
+        chosen_tweets_index = set()
+        chosen_tweets_objects = []
         for ranker in EVALUATION_RANKERS:
             rankers = ranker.split(',')
             ranker_result = run(url=query_url, gatherer=EVALUATION_GATHERER, rankers=rankers,
                 filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
-                tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=100)
-            chosen_subset = choose_tweets(ranker_result)
-            for score, tweet in chosen_subset:
+                tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=None)
+            
+            i = 1
+            for score, tweet in ranker_result:
                 try:
-                    index = tweet_ids.index(tweet['_id'])
+                    index = tweet_ids.index(tweet['tweet_id'])
                     tweet_objects[index]['scores'].append({ranker: score})
+                    tweet_objects[index]['ranks'].append({ranker: i})
                 except ValueError:
-                    tweet_object = {'tweet': tweet, 'scores': [{ranker: score}]}
+                    tweet_object = {'tweet': tweet, 'scores': [{ranker: score}], 'ranks': [{ranker: i}]}
                     tweet_objects.append(tweet_object)
-                    tweet_ids.append(tweet['_id'])
-        cache_collection.insert({'query_url': query_url, 'tweets': tweet_objects})
-        return_list = [(0, tweet['tweet']) for tweet in tweet_objects]
+                    tweet_ids.append(tweet['tweet_id'])
+                i = i + 1
+
+            chosen_subset = choose_tweets(ranker_result, query_url)
+            for score, tweet in chosen_subset:
+                index = tweet_ids.index(tweet['tweet_id'])
+                chosen_tweets_index.add(index)
+
+        for index in chosen_tweets_index:
+            chosen_tweets_objects.append(tweet_objects[index])
+
+        cache_collection.insert({'query_url': query_url, 'tweets': chosen_tweets_objects})
+        return_list = [(0, tweet['tweet']) for tweet in chosen_tweets_objects]
 
     else:
         return_list = [(0, tweet['tweet']) for tweet in cached_results['tweets']]
