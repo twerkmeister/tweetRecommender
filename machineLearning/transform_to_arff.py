@@ -1,6 +1,7 @@
 from tweetRecommender.mongo import mongo
 
 import os
+from bson import ObjectId
 
 script = """var x = db.evaluation.aggregate([
  {$group: {
@@ -23,10 +24,42 @@ with open(OUTPUT_PATH, "w") as output:
 
     output.write("@DATA\n")
 
-    x = mongo.coll("evaluation").aggregate({"$group": {
-        "_id": "$webpage",
+    x = mongo.coll("evaluation").aggregate([{"$group": {
+        "_id": { "webpage": "$webpage", "tweet": "$tweet" },
         "positive": {"$sum": {"$cond": {"if": {"$eq": ["$rating", +1]}, "then": 1, "else": 0}}},
         "negative": {"$sum": {"$cond": {"if": {"$eq": ["$rating", -1]}, "then": 1, "else": 0}}},
-    }})
-    print x
+    }},
+    {"$group": {
+        "_id": "$_id.webpage",
+        "tweets": {"$push": {
+            "tweet": "$_id.tweet",
+            "positive": "$positive",
+            "negative": "$negative"
+        }}
+    }}])
+
+    for webpage in x["result"]:
+        query_url = webpage["_id"]
+        for tweet in webpage["tweets"]:
+            cache = mongo.coll("evaluation_cache_advanced").find_one(
+                {"query_url": query_url}, 
+                {"tweets": {"$elemMatch": {"tweet._id": ObjectId(tweet["tweet"])}}}
+            )
+
+            try:
+                for score in cache["tweets"][0]["scores"]:
+                    if score.keys()[0] == "lda_cossim":
+                        value1 = score.values()[0]
+                    elif score.keys()[0] == "language_model":
+                        value2 = score.values()[0]
+                    else:
+                        value3 = score.values()[0]
+
+                rating = -1
+                if tweet["positive"] > tweet["negative"]:
+                    rating = 1
+
+                output.write("%f,%f,%f,%f\n" % (value1, value2, value3, rating))
+            except Exception as e:
+                print e
 
