@@ -49,10 +49,7 @@ def calculate_MAP(query_url):
                     relevants += 1
                     precisions.append(relevants/position)
             meanap = sum(precisions)/relevants
-            map_dict[ranker] = meanap                                                       
-            print ("evaluation algorithm: %s" % ranker)
-            print ("number of relevant tweets: %s" % relevants)
-            print ("Mean Average Precision: %f \n" % meanap)
+            map_dict[ranker] = meanap                                                                           
         mongo.coll(CACHED_RESULTS_COLLECTION).update({"query_url":query_url},{"$set": { "eval" : {"map" : map_dict }}})
     return map_dict
 
@@ -62,12 +59,14 @@ def evaluate_collections():
     for webpage in mongo.coll(CACHED_RESULTS_COLLECTION).find({},{"query_url":1}):                     
         count += 1        
         value = 0                        
-        print "evaluate webpage: ", count
+        print "\nevaluated article: ", count
         ranks_dict = calculate_MAP(webpage["query_url"])                                
-        for ranker in ranks_dict.keys():
-            if ranker in ranks:
-                value = ranks.get(ranker)
-            ranks[ranker] = ranks_dict[ranker] + value                                                                                                    
+        for key in ranks_dict.keys():
+            print ("MAP %s : %f" % (key,ranks_dict[key]))                        
+            if key in ranks:
+                value = ranks.get(key)
+            ranks[key] = ranks_dict[key] + value            
+    print "\n"                                                                                                
     for ranker in EVALUATION_RANKERS:        
         print "Average MAP %s : %f" % (ranker, (ranks[ranker]/count))
                       
