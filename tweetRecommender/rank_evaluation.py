@@ -28,36 +28,48 @@ def get_evaluated_collection(url):
             value.append(ObjectId(tweet["_id"]))
     return set(value)    
 
-def calculate_MAP(query_url, ranker):    
-    collections = get_evaluated_collection(query_url)        
-    relevants = 0
-    position = 0 
-    precisions = []       
-    rankers = ranker.split(',')
-    ranker_result = run(url=query_url, gatherer=EVALUATION_GATHERER, rankers=rankers,
-                        filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
-                        tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=10)                    
-    for _, tweet in ranker_result:
-        position += 1                    
-        if (ObjectId(tweet["_id"]) in collections):                                
-            relevants += 1
-            precisions.append(relevants/position)            
-    print ("evaluation algorithm: %s" % ranker)
-    print ("number of relevant tweets: %s" % relevants)
-    print ("Mean Average Precision: %f" % (sum(precisions)/relevants))
-    return (sum(precisions)/relevants)         
+def calculate_MAP(query_url):    
+    collections = get_evaluated_collection(query_url)                        
+    map_dict = dict()                
+    value = mongo.coll(CACHED_RESULTS_COLLECTION).find_one({"$and" : [{"query_url" : query_url},{"eval.map" : {"$exists" : "true"}}]})
+    if value:
+        map_dict = dict(value["eval"]["map"])
+    else: 
+        for ranker in EVALUATION_RANKERS:                
+            relevants = 0
+            position = 0 
+            precisions = []
+            rankers = ranker.split(',')
+            ranker_result = run(url=query_url, gatherer=EVALUATION_GATHERER, rankers=rankers,
+                                filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
+                                tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=10)                    
+            for _, tweet in ranker_result:
+                position += 1                    
+                if (ObjectId(tweet["_id"]) in collections):                                
+                    relevants += 1
+                    precisions.append(relevants/position)
+            meanap = sum(precisions)/relevants
+            map_dict[ranker] = meanap                                                       
+            print ("evaluation algorithm: %s" % ranker)
+            print ("number of relevant tweets: %s" % relevants)
+            print ("Mean Average Precision: %f \n" % meanap)
+        mongo.coll(CACHED_RESULTS_COLLECTION).update({"query_url":query_url},{"$set": { "eval" : {"map" : map_dict }}})
+    return map_dict
 
 def evaluate_collections():
-    ranks = dict()
+    ranks = dict()        
     count = 0
-    for webpage in mongo.coll(CACHED_RESULTS_COLLECTION).find({},{"query_url":1}):
+    for webpage in mongo.coll(CACHED_RESULTS_COLLECTION).find({},{"query_url":1}):                     
         count += 1        
-        for ranker in EVALUATION_RANKERS:
-            values = 0                        
-            if ranker in ranks:                
-                values = ranks.get(ranker)            
-            ranks[ranker] = values + calculate_MAP(webpage["query_url"], ranker)                                            
-    for ranker in EVALUATION_RANKERS:
-        print "Average MAP %s : %f" % (ranker, (ranks[ranker]/count))              
+        value = 0                        
+        print "evaluate webpage: ", count
+        ranks_dict = calculate_MAP(webpage["query_url"])                                
+        for ranker in ranks_dict.keys():
+            if ranker in ranks:
+                value = ranks.get(ranker)
+            ranks[ranker] = ranks_dict[ranker] + value                                                                                                    
+    for ranker in EVALUATION_RANKERS:        
+        print "Average MAP %s : %f" % (ranker, (ranks[ranker]/count))
+                      
 if __name__ == '__main__':
-    evaluate_collections()    
+    evaluate_collections()         
