@@ -20,8 +20,9 @@ with open(OUTPUT_PATH, "w") as output:
     output.write("@RELATION ratings\n")
 
     for ranker in EVALUATION_RANKERS:
-        output.write("@ATTRIBUTE %s NUMERIC\n" % ranker)
+        output.write("@ATTRIBUTE %s real\n" % ranker)
 
+    output.write("@ATTRIBUTE rating {yes,no}")
     output.write("@DATA\n")
 
     x = mongo.coll("evaluation").aggregate([{"$group": {
