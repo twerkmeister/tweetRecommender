@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 tmp/
 dataAnalysis/*.png
+dataAnalysis/.RData
+dataAnalysis/.Rhistory
+
+
