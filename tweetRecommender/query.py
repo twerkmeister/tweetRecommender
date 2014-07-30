@@ -158,12 +158,9 @@ def run(url, gatherer, rankers, filters,
     return query(url, gather_func, score_funcs, filter_funcs, fields,
                  tweets_coll, webpages_coll, limit)
 
-def choose_tweets(tweets, query_url):
-    collection = mongo.coll("evaluation_cache")
-    query_results = collection.find_one({'query_url': query_url})
-    chosen = [(0, tweet['tweet']) for tweet in query_results['tweets']]
-    #chosen = tweets[:5]
-    #chosen.extend(tweets[95:100])
+def choose_tweets(tweets):
+    chosen = tweets[:5]
+    chosen.extend(tweets[95:100])
     return chosen
 
 def evaluation_run(query_url):
@@ -171,45 +168,99 @@ def evaluation_run(query_url):
     cached_results = cache_collection.find_one({'query_url': query_url})
 
     if not cached_results:
-        tweet_ids = []
-        tweet_objects = []
-        chosen_tweets_index = set()
-        chosen_tweets_objects = []
+        tmp_ids = set()
+        tmp_tweets = set()
+
+        # Get ids of all evaluation tweets
         for ranker in EVALUATION_RANKERS:
             rankers = ranker.split(',')
             ranker_result = run(url=query_url, gatherer=EVALUATION_GATHERER, rankers=rankers,
                 filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
                 tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=None)
-            
-            i = 1
+
+            subset = choose_tweets(ranker_result)
+            tmp_ids.update([tweet["tweet_id"] for score, tweet in subset])
+            tmp_tweets.update([tweet for score,tweet in subset])
+
+        tmp_ids = list(tmp_ids)
+        tmp_tweets = list(tmp_tweets)
+        tmp_ranks = [[] for _ in tmp_ids]
+        tmp_scores = [[] for _ in tmp_ids]        
+
+        # Get score and rank of all evaluation tweets
+        for ranker in EVALUATION_RANKERS:
+            rankers = ranker.split(',')
+            ranker_result = run(url=query_url, gatherer=EVALUATION_GATHERER, rankers=rankers,
+                filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
+                tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=None)
+
+            position = 0
             for score, tweet in ranker_result:
                 try:
-                    index = tweet_ids.index(tweet['tweet_id'])
-                    tweet_objects[index]['scores'].append({ranker: score})
-                    tweet_objects[index]['ranks'].append({ranker: i})
+                    index = tmp_ids.index(tweet['tweet_id'])    
+
+                    rank_field = {ranker: position}
+                    tmp_ranks[index].append(rank_field)
+                    score_field = {ranker: score}
+                    tmp_scores[index].append(score_field)
+
+                    position = position + 1                    
                 except ValueError:
-                    tweet_object = {'tweet': tweet, 'scores': [{ranker: score}], 'ranks': [{ranker: i}]}
-                    tweet_objects.append(tweet_object)
-                    tweet_ids.append(tweet['tweet_id'])
-                i = i + 1
+                    pass
 
-            chosen_subset = choose_tweets(ranker_result, query_url)
-            for score, tweet in chosen_subset:
-                index = tweet_ids.index(tweet['tweet_id'])
-                chosen_tweets_index.add(index)
+        tweets = []
+        for i in range(len(tmp_tweets)):
+            tweets.append({"tweet": tmp_tweets[i], "scores": tmp_scores[i], "ranks": tmp_ranks[i]})
 
-        for index in chosen_tweets_index:
-            chosen_tweets_objects.append(tweet_objects[index])
-
-        cache_collection.insert({'query_url': query_url, 'tweets': chosen_tweets_objects})
-        return_list = [(0, tweet['tweet']) for tweet in chosen_tweets_objects]
+        cache_collection.update({'query_url': query_url}, {'tweet_list': tweets}, upsert=True)
+        return_list = [(0, tweet['tweet']) for tweet in tweets]
 
     else:
         return_list = [(0, tweet['tweet']) for tweet in cached_results['tweets']]
     random.shuffle(return_list)
     return return_list
 
+def get_evaluated_tweets(query_url):
+    collection = mongo.coll("evaluation_cache")
+    query_results = collection.find_one({'query_url': query_url})
+    chosen = [(0, tweet['tweet']) for tweet in query_results['tweets']]
+    return chosen
 
+def update_evaluation_cache(query_url):
+    cache_collection = mongo.coll(CACHED_RESULTS_COLLECTION)
+
+    chosen_subset = get_evaluated_tweets(query_url)
+    chosen_ids = [tweet["tweet_id"] for score, tweet in chosen_subset]
+
+    tmp_tweets = [tweet for score, tweet in chosen_subset]
+    tmp_ranks = [[] for _ in chosen_subset]
+    tmp_scores = [[] for _ in chosen_subset]
+
+    for ranker in EVALUATION_RANKERS:
+        rankers = ranker.split(',')
+        ranker_result = run(url=query_url, gatherer=EVALUATION_GATHERER, rankers=rankers,
+            filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
+            tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=None)
+
+        position = 1
+        for score, tweet in ranker_result:
+            try:
+                index = chosen_ids.index(tweet['tweet_id'])    
+
+                rank_field = {ranker: position}
+                tmp_ranks[index].append(rank_field)
+                score_field = {ranker: score}
+                tmp_scores[index].append(score_field)
+
+                position = position + 1
+            except ValueError:
+                pass
+
+    tweets = []
+    for i in range(len(tmp_tweets)):
+        tweets.append({"tweet": tmp_tweets[i], "scores": tmp_scores[i], "ranks": tmp_ranks[i]})
+
+    cache_collection.update({'query_url': query_url}, {"$set": {"tweet_list": tweets}})
 
 def main(args=None):
     """Command-line interface."""
