@@ -31,7 +31,7 @@ def get_evaluated_collection(url):
 def calculate_MAP(query_url):    
     collections = get_evaluated_collection(query_url)                        
     map_dict = dict()                
-    value = mongo.coll(CACHED_RESULTS_COLLECTION).find_one({"$and" : [{"query_url" : query_url},{"eval.map" : {"$exists" : "true"}}]})
+    value = mongo.coll(CACHED_RESULTS_COLLECTION).find_one({"$and" : [{"query_url" : query_url},{"eval.mapk" : {"$exists" : "true"}}]})
     if value:
         map_dict = dict(value["eval"]["map"])
     else: 
@@ -42,7 +42,7 @@ def calculate_MAP(query_url):
             rankers = ranker.split(',')
             ranker_result = run(url=query_url, gatherer=EVALUATION_GATHERER, rankers=rankers,
                                 filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
-                                tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=10)                    
+                                tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit = None)                    
             for _, tweet in ranker_result:
                 position += 1                    
                 if (ObjectId(tweet["_id"]) in collections):                                
@@ -50,25 +50,61 @@ def calculate_MAP(query_url):
                     precisions.append(relevants/position)
             meanap = sum(precisions)/relevants
             map_dict[ranker] = meanap                                                                           
-        mongo.coll(CACHED_RESULTS_COLLECTION).update({"query_url":query_url},{"$set": { "eval" : {"map" : map_dict }}})
+        mongo.coll(CACHED_RESULTS_COLLECTION).update({"query_url":query_url},{"$set": { "eval.map" : map_dict }})
+    return map_dict
+
+def calculate_p_at(query_url, positions):    
+    collections = get_evaluated_collection(query_url)                        
+    map_dict = dict()                
+    value = mongo.coll(CACHED_RESULTS_COLLECTION).find_one({"$and" : [{"query_url" : query_url},{"eval.p10" : {"$exists" : "true"}}]})
+    if value:
+        map_dict = dict(value["eval"]["p10"])
+    else: 
+        for ranker in EVALUATION_RANKERS:                
+            relevants = 0
+            position = 0     
+            precision_at = 0        
+            rankers = ranker.split(',')
+            ranker_result = run(url=query_url, gatherer=EVALUATION_GATHERER, rankers=rankers,
+                                filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
+                                tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=10)
+            print "lenghtnya adalah: " , len(ranker_result)                    
+            for _, tweet in ranker_result:
+                position += 1                    
+                if (ObjectId(tweet["_id"]) in collections):                                
+                    relevants += 1  
+                if position == positions:
+                    precision_at = relevants/position
+                    break;                    
+            map_dict[ranker] = precision_at
+        mongo.coll(CACHED_RESULTS_COLLECTION).update({"query_url":query_url},{"$set": { "eval.p10" : map_dict }})
     return map_dict
 
 def evaluate_collections():
-    ranks = dict()        
+    rank_map = dict()  
+    rank_pap = dict()      
     count = 0
     for webpage in mongo.coll(CACHED_RESULTS_COLLECTION).find({},{"query_url":1}):                     
         count += 1        
-        value = 0                        
+        value = 0                                
         print "\nevaluated article: ", count
-        ranks_dict = calculate_MAP(webpage["query_url"])                                
+        ranks_dict = calculate_p_at(webpage["query_url"], 10)
         for key in ranks_dict.keys():
-            print ("MAP %s : %f" % (key,ranks_dict[key]))                        
-            if key in ranks:
-                value = ranks.get(key)
-            ranks[key] = ranks_dict[key] + value            
+            print ("precision at 10 %s : %f" % (key,ranks_dict[key]))                        
+            if key in rank_pap:
+                value = rank_pap.get(key)
+            rank_pap[key] = ranks_dict[key] + value                
+        value = 0  
+        ranks_dict = calculate_MAP(webpage["query_url"])                                    
+        for key in ranks_dict.keys():
+            print ("AP %s : %f" % (key,ranks_dict[key]))                        
+            if key in rank_map:
+                value = rank_map.get(key)
+            rank_map[key] = ranks_dict[key] + value                
     print "\n"                                                                                                
     for ranker in EVALUATION_RANKERS:        
-        print "Average MAP %s : %f" % (ranker, (ranks[ranker]/count))
+        print "Average MAP %s : %f" % (ranker, (rank_map[ranker]/count))
+        print "Average precision @10 %s : %f" % (ranker, (rank_pap[ranker]/count))
                       
 if __name__ == '__main__':
     evaluate_collections()         
