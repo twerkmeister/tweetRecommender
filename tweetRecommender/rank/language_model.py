@@ -16,8 +16,8 @@ def score(tweet, webpage):
 
 score.fields = ['terms']
 
-#|D| = number of terms in a tweets
-#f(qi,d) =  frequencey of a term occur in a tweets
+#|D| = number of query terms in a tweets
+#f(qi,d) =  frequencey of a query term occur in a tweets
 #|C| = total numbers terms in tweets collections
 #c(qi) = frequency of a term in the tweets collection
 #i term
@@ -25,9 +25,11 @@ score.fields = ['terms']
 miu = 1000  #dirichilet parameter typical 1,000< miu < 2,000  
 def dirichlet(query, document):                        
     score = 0    
-    for term in query:                    
-        score += log((document.count(term) + miu * get_collection_term(term) / get_collection_vocab()) /
-                        (len(document) + miu))             
+    for term in query:  
+        background_terms = get_collection_term(term)
+        if background_terms != 0:
+            score += log((document.count(term) + miu * background_terms / get_collection_vocab()) /
+                         (len(document) + miu))             
     return score
 
 #a parameter (0 means no smoothing)
@@ -47,4 +49,4 @@ def get_collection_vocab():
                                                             "total": { "$sum":1 } } } ])["result"][0]["total"];
 @functools32.lru_cache(1000)                                                             
 def get_collection_term(term):
-    return mongo.coll(LANGUAGE_COLLECTION).find({"terms" : {"$in" : [term]}}).count() + 1 #prevent 0 occurence in background
+    return mongo.coll(LANGUAGE_COLLECTION).find({"terms" : {"$in" : [term]}}).count() 
