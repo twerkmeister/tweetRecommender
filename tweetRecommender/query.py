@@ -115,13 +115,25 @@ def rank(tweets, score_funcs, webpage, limit):
         LOG.debug("Voting..")
         with LOG.measured("Voting"):
             overall = vote(rankings, weights)
-
+                
     LOG.debug("Sorting..")
     result = sorted(overall, key=operator.itemgetter(0), reverse=True)
-
+    
+    #LOG.debug("Feature Scaling...")
+    #result = feature_scaling(result)
+        
     #LOG.debug("Diversity..")
     #result = diversity(result, limit, tweets_index)
     return [(score, tweets_index[tweet]) for score, tweet in result]
+
+def feature_scaling(result):    
+    max_val = result[0][0]
+    LOG.debug("max : ", max)
+    min_val = result[len(result)-1][0]
+    LOG.debug("min : ", min)
+    for i,(value,key) in enumerate(result):        
+        result[i] = ((value - min_val) / (max_val - min_val), key)          
+    return result
 
 def _required_fields(funcs):
     fields = set()
