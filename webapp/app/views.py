@@ -24,7 +24,6 @@ log.basicConfig(
 
 URLS_FILE = os.path.join(os.path.dirname(__file__), "urls.txt")
 URLS = file(URLS_FILE).read().split("\n")[:-1]
-log.info("URLS: %s" % URLS)
 
 TWEETS_COLLECTION = 'sample_tweets'
 WEBPAGES_COLLECTION = 'sample_webpages'
@@ -42,7 +41,7 @@ def next_evaluation_url(evaluated):
     for url in evaluated:
         urls.remove(url)
     next_url = random_evaluation_url(urls)
-    log.DEBUG("Next url: %s" % next_url)
+    log.debug("Next url: %s" % next_url)
     return next_url
     #return URLS[len(evaluated) % len(URLS)]
 
@@ -174,7 +173,7 @@ def get_article(webpage_id):
     webpage = get_webpage_for_id(webpage_id, mongo.coll(WEBPAGES_COLLECTION))
     article = "No article found with id %s!" % webpage_id
     url = ""
-    num_articles = get_evaluated_articles()
+    num_articles = len(get_evaluated_articles())
     if webpage:
         article = webpage.get("article", webpage["content"]).encode("utf-8")
         url = webpage["url"]
@@ -183,6 +182,6 @@ def get_article(webpage_id):
 def get_evaluated_articles():
     uid = session.get('uid', '')    
     webpages = list(mongo.coll(EVALUATION_COLLECTION).find({'uid' : uid},{'webpage' : 1}).distinct('webpage'))
-    log.DEBUG("WEBPAGES EVALUATED BY USER (%s):" % uid)
-    log.DEBUG("%s" % ";".join(webpages))
+    log.debug("WEBPAGES EVALUATED BY USER %s:" % (uid))
+    log.debug("%s" % (";".join(webpages)))
     return webpages
