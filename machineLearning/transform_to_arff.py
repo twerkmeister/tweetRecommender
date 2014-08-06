@@ -59,6 +59,6 @@ with open(OUTPUT_PATH, "w") as output:
             if tweet["positive"] > tweet["negative"]:
                 rating = "yes"
 
-            output.write("%d,%d,%d,%s\n" % (value1, value2, value3, rating))
+            output.write("%d,%d,%d,%s\n" % (len(cache["tweet_list"])-value1, len(cache["tweet_list"])-value2, len(cache["tweet_list"])-value3, rating))
 
 
