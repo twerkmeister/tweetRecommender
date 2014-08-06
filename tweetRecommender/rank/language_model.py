@@ -30,8 +30,8 @@ def score(tweet, webpage):
 
 score.fields = ['terms']
 
-#|D| = number of terms in a tweets
-#f(qi,d) =  frequencey of a term occur in a tweets
+#|D| = number of query terms in a tweets
+#f(qi,d) =  frequencey of a query term occur in a tweets
 #|C| = total numbers terms in tweets collections
 #c(qi) = frequency of a term in the tweets collection
 #i term
@@ -51,5 +51,15 @@ def jelinek_mercer(query, document):
     score = 0            
     for term in query:        
         score += log((1-a)*document.count(term) / len(document) + 
-                     a * get_collection_term(term) / get_collection_vocab())            
+                     a * get_collection_term(term) / get_collection_vocab())
     return score
+
+@functools32.lru_cache() 
+def get_collection_vocab():
+    return mongo.coll(LANGUAGE_COLLECTION).aggregate([{ "$unwind" : "$terms" }, 
+                                                      { "$group": {  "_id": "null",
+                                                            "total": { "$sum":1 } } } ])["result"][0]["total"];
+@functools32.lru_cache(1000)                                                             
+def get_collection_term(term):
+    return mongo.coll(LANGUAGE_COLLECTION).find({"terms" : {"$in" : [term]}}).count() 
+>>>>>>> 051f6b0e8e8a458d337f2ff356d0ad9682ca2138
