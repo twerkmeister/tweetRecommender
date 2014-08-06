@@ -9,8 +9,10 @@ from collections import defaultdict
    
 DISPLAY_NAME = "Text similarity"
 
-LANGUAGE_COLLECTION = 'sample_tweets'
-COLLECTION_STATISTICS_COLLECTION = "collection_statistics"
+#LANGUAGE_COLLECTION = 'sample_tweets'
+LANGUAGE_COLLECTION = 'sample_webpages'
+#COLLECTION_STATISTICS_COLLECTION = "collection_statistics_tweets"
+COLLECTION_STATISTICS_COLLECTION = "collection_statistics_webpages"
 
 
 def readCollectionStatistics():
@@ -40,8 +42,9 @@ miu = 2000  #dirichilet parameter typical 1,000< miu < 2,000
 def dirichlet(query, document):                        
     score = 0    
     for term in query:                    
-        score += log((float(document.count(term)) + miu * collection_stats[term] / overall_size) /
-                        (len(document) + miu))             
+        if term in collection_stats:
+            score += log((float(document.count(term)) + miu * collection_stats[term] / overall_size) /
+                         (len(document) + miu))             
     return score
 
 #a parameter (0 means no smoothing)
@@ -61,5 +64,4 @@ def get_collection_vocab():
                                                             "total": { "$sum":1 } } } ])["result"][0]["total"];
 @functools32.lru_cache(1000)                                                             
 def get_collection_term(term):
-    return mongo.coll(LANGUAGE_COLLECTION).find({"terms" : {"$in" : [term]}}).count() 
->>>>>>> 051f6b0e8e8a458d337f2ff356d0ad9682ca2138
+    return mongo.coll(LANGUAGE_COLLECTION).find({"terms" : {"$in" : [term]}}).count()
