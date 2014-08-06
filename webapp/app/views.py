@@ -34,11 +34,17 @@ LIMIT = 10
 def random_url():
     return mongo.random(WEBPAGES_COLLECTION)['url']
 
-def random_evaluation_url():
+def random_evaluation_url(urls=URLS):
     return random.choice(URLS)
 
-def next_evaluation_url(num_evaluated):
-    return URLS[num_evaluated % len(URLS)]
+def next_evaluation_url(evaluated):
+    urls = URLS[:]
+    for url in evaluated:
+        urls.remove(url)
+    next_url = random_evaluation_url(urls)
+    log.DEBUG("Next url: %s" % next_url)
+    return next_url
+    #return URLS[len(evaluated) % len(URLS)]
 
 def random_options():
     gather = random.choice(list(machinery.find_components(
@@ -176,4 +182,7 @@ def get_article(webpage_id):
 
 def get_evaluated_articles():
     uid = session.get('uid', '')    
-    return len(mongo.coll(EVALUATION_COLLECTION).find({'uid' : uid},{'webpage' : 1}).distinct('webpage'))    
+    webpages = list(mongo.coll(EVALUATION_COLLECTION).find({'uid' : uid},{'webpage' : 1}).distinct('webpage'))
+    log.DEBUG("WEBPAGES EVALUATED BY USER (%s):" % uid)
+    log.DEBUG("%s" % ";".join(webpages))
+    return webpages
