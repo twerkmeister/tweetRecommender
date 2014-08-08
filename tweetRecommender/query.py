@@ -8,7 +8,7 @@ from tweetRecommender.config import config
 from tweetRecommender.mongo import mongo
 from tweetRecommender.util import set_vars, repr_
 from tweetRecommender.voting import vote
-from tweetRecommender.diversity import diversity
+from tweetRecommender import diversity
 from tweetRecommender import machinery
 from tweetRecommender import log
 
@@ -30,9 +30,9 @@ TWEETS_SUBSAMPLE = 'sample_tweets'
 WEBPAGES_SUBSAMPLE = 'sample_webpages'
 
 EVALUATION_GATHERER = "terms"
-EVALUATION_FILTERS = []
-EVALUATION_RANKERS = ['lda_cossim', 'language_model', 'text_overlap, normalized_follower_count']
-CACHED_RESULTS_COLLECTION = 'evaluation_cache_advanced'
+EVALUATION_FILTERS = ["retweets"]
+EVALUATION_RANKERS = ['lda_cossim', 'language_model']
+CACHED_RESULTS_COLLECTION = 'evaluation_cache_fresh'
 
 LOG = log.getLogger('tweetRecommender.query')
 
@@ -123,7 +123,7 @@ def rank(tweets, score_funcs, webpage, limit):
     #result = feature_scaling(result)
         
     #LOG.debug("Diversity..")
-    #result = diversity(result, limit, tweets_index)
+    #result = diversity.diversity(result, limit, tweets_index)
     return [(score, tweets_index[tweet]) for score, tweet in result]
 
 def feature_scaling(result):    
@@ -171,66 +171,85 @@ def run(url, gatherer, rankers, filters,
                  tweets_coll, webpages_coll, limit)
 
 def choose_tweets(tweets):
-    chosen = tweets[:5]
-    chosen.extend(tweets[95:100])
+    MIN_RANDOM = 10
+    MAX_RANDOM = len(tweets)-1
+    NUM_TOP_TWEETS = 5
+    NUM_TOTAL_TWEETS = 15
+
+    chosen = []
+    getRandom = False
+    index = 0
+    while True:
+        if getRandom:
+            randIndex = random.randint(MIN_RANDOM, MAX_RANDOM)
+            new_tweet = tweets[randIndex]
+            if diversity.new_tweet_is_different(chosen, new_tweet):
+                chosen.append(new_tweet)
+
+        else:
+            new_tweet = tweets[index]
+            if diversity.new_tweet_is_different(chosen, new_tweet):
+                chosen.append(new_tweet)
+            index += 1
+            if index >= MIN_RANDOM:
+                MIN_RANDOM += 1
+            if MIN_RANDOM >= MAX_RANDOM:
+                break
+
+        if len(chosen) == NUM_TOP_TWEETS:
+            getRandom = True
+        if len(chosen) == NUM_TOTAL_TWEETS:
+            break
+
     return chosen
+
 
 def evaluation_run(query_url):
     cache_collection = mongo.coll(CACHED_RESULTS_COLLECTION)
     cached_results = cache_collection.find_one({'query_url': query_url})
 
     if not cached_results:
-        tmp_ids = set()
-        tmp_tweets = set()
+        all_results = {}
+        tmp_index = []
+        result_list = []
+        scores = {}
 
-        # Get ids of all evaluation tweets
         for ranker in EVALUATION_RANKERS:
             rankers = ranker.split(',')
             ranker_result = run(url=query_url, gatherer=EVALUATION_GATHERER, rankers=rankers,
                 filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
                 tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=None)
+
+            log.debug("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD %s" % str(len(ranker_result)))
+
 
             subset = choose_tweets(ranker_result)
-            tmp_ids.update([tweet["tweet_id"] for score, tweet in subset])
-            tmp_tweets.update([tweet for score,tweet in subset])
+            log.debug("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC %s" % str(len(subset)))
+            all_results[ranker] = ranker_result
 
-        tmp_ids = list(tmp_ids)
-        tmp_tweets = list(tmp_tweets)
-        tmp_ranks = [[] for _ in tmp_ids]
-        tmp_scores = [[] for _ in tmp_ids]        
+            for score, tweet in subset:
+                if tweet["tweet_id"] not in tmp_index:
+                    tmp_index.append(tweet["tweet_id"])
+                    result_list.append((0, tweet))
 
-        # Get score and rank of all evaluation tweets
         for ranker in EVALUATION_RANKERS:
-            rankers = ranker.split(',')
-            ranker_result = run(url=query_url, gatherer=EVALUATION_GATHERER, rankers=rankers,
-                filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
-                tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=None)
+            for score, tweet in all_results[ranker]:     
+                if tweet["tweet_id"] in tmp_index:              
+                    if tweet["tweet_id"] in scores:
+                        scores[tweet["tweet_id"]].append({ranker: score})
+                    else:
+                        scores[tweet["tweet_id"]] = [{ranker: score}]
 
-            position = 0
-            for score, tweet in ranker_result:
-                try:
-                    index = tmp_ids.index(tweet['tweet_id'])    
+        cache_tweet_list = []
+        for score, tweet in result_list:
+            cache_tweet_list.append({"tweet": tweet, "scores": scores[tweet["tweet_id"]]})
 
-                    rank_field = {ranker: position}
-                    tmp_ranks[index].append(rank_field)
-                    score_field = {ranker: score}
-                    tmp_scores[index].append(score_field)
-
-                    position = position + 1                    
-                except ValueError:
-                    pass
-
-        tweets = []
-        for i in range(len(tmp_tweets)):
-            tweets.append({"tweet": tmp_tweets[i], "scores": tmp_scores[i], "ranks": tmp_ranks[i]})
-
-        cache_collection.update({'query_url': query_url}, {'tweet_list': tweets}, upsert=True)
-        return_list = [(0, tweet['tweet']) for tweet in tweets]
+        cache_collection.update({'query_url': query_url}, {'tweet_list': cache_tweet_list}, upsert=True)
 
     else:
-        return_list = [(0, tweet['tweet']) for tweet in cached_results['tweets']]
-    random.shuffle(return_list)
-    return return_list
+        result_list = [(0, tweet['tweet']) for tweet in cached_results['tweets']]
+    random.shuffle(result_list)
+    return result_list
 
 def get_evaluated_tweets(query_url):
     collection = mongo.coll("evaluation_cache")
