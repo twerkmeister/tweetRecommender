@@ -39,7 +39,10 @@ def random_evaluation_url(urls=URLS):
 def next_evaluation_url(evaluated):
     urls = URLS[:]
     for url in evaluated:
-        urls.remove(url)
+        try:
+            urls.remove(url)
+        except:
+            pass #url is not in the pool anymore
     next_url = random_evaluation_url(urls)
     log.debug("Next url: %s" % next_url)
     return next_url
@@ -173,7 +176,7 @@ def get_article(webpage_id):
     webpage = get_webpage_for_id(webpage_id, mongo.coll(WEBPAGES_COLLECTION))
     article = "No article found with id %s!" % webpage_id
     url = ""
-    num_articles = len(get_evaluated_articles())
+    num_articles = len(set(get_evaluated_articles()).intersection(set(URLS)))
     if webpage:
         article = webpage.get("article", webpage["content"]).encode("utf-8")
         url = webpage["url"]
