@@ -46,8 +46,11 @@ def dirichlet(query, document):
         if term in collection_stats:
             score += log((float(document.count(term)) + miu * collection_stats[term] / overall_size) /
                          (len(document) + miu))
-            present_word_count += 1           
-    return score/present_word_count
+            present_word_count += 1
+    if present_word_count == 0:
+      return -9999999           
+    else:
+      return score/present_word_count
 
 #a parameter (0 means no smoothing)
 #sum(log(((1-a)*f(qi,d)/|D|) + (a * c(qi) / |C|)))
