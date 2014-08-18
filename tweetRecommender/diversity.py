@@ -1,7 +1,7 @@
 from tweetRecommender import log
 from tweetRecommender.tokenize import tokenize_diversity
 
-term_similarity = 2
+term_similarity = 1
 
 def diversity(result, limit, tweets_index):        
     log.debug("remove similar tweets..")                

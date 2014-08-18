@@ -172,7 +172,7 @@ def run(url, gatherer, rankers, filters,
 
 def choose_tweets(tweets):
     MIN_RANDOM = 11
-    MAX_RANDOM = len(tweets)-1
+    MAX_RANDOM = 100#len(tweets)-1
     NUM_TOP_TWEETS = 10
     NUM_TOTAL_TWEETS = 15
 
