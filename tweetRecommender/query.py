@@ -171,10 +171,10 @@ def run(url, gatherer, rankers, filters,
                  tweets_coll, webpages_coll, limit)
 
 def choose_tweets(tweets):
-    MIN_RANDOM = 11
+    MIN_RANDOM = 6
     MAX_RANDOM = 100#len(tweets)-1
-    NUM_TOP_TWEETS = 10
-    NUM_TOTAL_TWEETS = 15
+    NUM_TOP_TWEETS = 5
+    NUM_TOTAL_TWEETS = 10
 
     chosen = []
     getRandom = False

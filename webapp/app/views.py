@@ -42,7 +42,9 @@ def next_evaluation_url(evaluated):
         try:
             urls.remove(url)
         except:
+            log.debug("ERROR WHILE REMOVING")
             pass #url is not in the pool anymore
+    log.debug("URLS NOT EVALUATED: %s" % str(len(urls)))
     next_url = random_evaluation_url(urls)
     log.debug("Next url: %s" % next_url)
     return next_url
