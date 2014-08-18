@@ -247,7 +247,7 @@ def evaluation_run(query_url):
         cache_collection.insert({'query_url': query_url, 'tweet_list': cache_tweet_list})
 
     else:
-        result_list = [(0, tweet['tweet']) for tweet in cached_results['tweets']]
+        result_list = [(0, tweet['tweet']) for tweet in cached_results['tweet_list']]
     random.shuffle(result_list)
     return result_list
 
