@@ -171,9 +171,9 @@ def run(url, gatherer, rankers, filters,
                  tweets_coll, webpages_coll, limit)
 
 def choose_tweets(tweets):
-    MIN_RANDOM = 10
-    MAX_RANDOM = len(tweets)-1
-    NUM_TOP_TWEETS = 5
+    MIN_RANDOM = 11
+    MAX_RANDOM = 100#len(tweets)-1
+    NUM_TOP_TWEETS = 10
     NUM_TOTAL_TWEETS = 15
 
     chosen = []
@@ -220,11 +220,11 @@ def evaluation_run(query_url):
                 filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
                 tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=None)
 
-            log.debug("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD %s" % str(len(ranker_result)))
+            log.debug("# Tweets before choosing: %s" % str(len(ranker_result)))
 
 
             subset = choose_tweets(ranker_result)
-            log.debug("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC %s" % str(len(subset)))
+            log.debug("# Tweets after choosing: %s" % str(len(subset)))
             all_results[ranker] = ranker_result
 
             for score, tweet in subset:
@@ -244,7 +244,7 @@ def evaluation_run(query_url):
         for score, tweet in result_list:
             cache_tweet_list.append({"tweet": tweet, "scores": scores[tweet["tweet_id"]]})
 
-        #cache_collection.insert({'query_url': query_url, 'tweet_list': cache_tweet_list})
+        cache_collection.insert({'query_url': query_url, 'tweet_list': cache_tweet_list})
 
     else:
         result_list = [(0, tweet['tweet']) for tweet in cached_results['tweets']]
