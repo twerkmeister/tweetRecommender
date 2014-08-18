@@ -31,7 +31,7 @@ WEBPAGES_SUBSAMPLE = 'sample_webpages'
 
 EVALUATION_GATHERER = "terms"
 EVALUATION_FILTERS = ["retweets"]
-EVALUATION_RANKERS = ['lda_cossim', 'language_model', "text_overlap"]
+EVALUATION_RANKERS = ['lda_cossim', 'language_model']
 CACHED_RESULTS_COLLECTION = 'evaluation_cache_fresh'
 
 LOG = log.getLogger('tweetRecommender.query')
@@ -244,7 +244,7 @@ def evaluation_run(query_url):
         for score, tweet in result_list:
             cache_tweet_list.append({"tweet": tweet, "scores": scores[tweet["tweet_id"]]})
 
-        cache_collection.insert({'query_url': query_url, 'tweet_list': cache_tweet_list})
+        #cache_collection.insert({'query_url': query_url, 'tweet_list': cache_tweet_list})
 
     else:
         result_list = [(0, tweet['tweet']) for tweet in cached_results['tweets']]
