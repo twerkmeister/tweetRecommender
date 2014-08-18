@@ -38,14 +38,16 @@ score.fields = ['terms']
 #c(qi) = frequency of a term in the tweets collection
 #i term
 #sum(log((f(qi,d) + miu * c(qi) / |C|)/(|D| + miu)))
-miu = 2000  #dirichilet parameter typical 1,000< miu < 2,000  
+miu = 1000  #dirichilet parameter typical 1,000< miu < 2,000  
 def dirichlet(query, document):                        
-    score = 0    
-    for term in query:                    
+    score = 0
+    present_word_count = 0
+    for term in query:
         if term in collection_stats:
             score += log((float(document.count(term)) + miu * collection_stats[term] / overall_size) /
-                         (len(document) + miu))             
-    return score
+                         (len(document) + miu))
+            present_word_count += 1           
+    return score/present_word_count
 
 #a parameter (0 means no smoothing)
 #sum(log(((1-a)*f(qi,d)/|D|) + (a * c(qi) / |C|)))
