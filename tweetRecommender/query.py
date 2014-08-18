@@ -220,11 +220,11 @@ def evaluation_run(query_url):
                 filters=EVALUATION_FILTERS, fields=['user.screen_name', 'created_at', 'text'],
                 tweets_ref=TWEETS_SUBSAMPLE, webpages_ref=WEBPAGES_SUBSAMPLE, limit=None)
 
-            log.debug("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD %s" % str(len(ranker_result)))
+            log.debug("# Tweets before choosing: %s" % str(len(ranker_result)))
 
 
             subset = choose_tweets(ranker_result)
-            log.debug("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC %s" % str(len(subset)))
+            log.debug("# Tweets after choosing: %s" % str(len(subset)))
             all_results[ranker] = ranker_result
 
             for score, tweet in subset:
