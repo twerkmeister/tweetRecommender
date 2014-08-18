@@ -34,7 +34,7 @@ def random_url():
     return mongo.random(WEBPAGES_COLLECTION)['url']
 
 def random_evaluation_url(urls=URLS):
-    return random.choice(URLS)
+    return random.choice(urls)
 
 def next_evaluation_url(evaluated):
     urls = URLS[:]
