@@ -49,7 +49,7 @@ def dirichlet(query, document):
             present_word_count += 1
     if present_word_count == 0:
       return -9999999           
-    else
+    else:
       return score/present_word_count
 
 #a parameter (0 means no smoothing)
