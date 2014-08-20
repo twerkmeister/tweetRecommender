@@ -8,14 +8,14 @@ function get_relative_time(webpage_creation_time, tweet_creation_time) {
 
 function get_binary_time_decision(webpage_creation_time, tweet_creation_time) {
   // webpage published... (-1: before, 1: after)
-  if (tweet_creation_time - webpage_creation_time) >= 0
+  if ((tweet_creation_time - webpage_creation_time) >= 0)
     return 1
   return -1
 }
 
 function get_capped_time(webpage_creation_time, tweet_creation_time) {
   // return 0 for all tweets published before webpage and real value for other
-  if (tweet_creation_time - webpage_creation_time) > 0
+  if ((tweet_creation_time - webpage_creation_time) > 0)
     return (tweet_creation_time - webpage_creation_time)
   return 0
 }
@@ -38,7 +38,7 @@ db.evaluation_cache_advanced.find().forEach(function(cachedResult){
       evaluation.scores.language_model = tweet.scores[1].language_model
       evaluation.tweet_length = tweet.tweet.terms.length // number of terms after stopword removal and stemming
       evaluation.times = get_time_values(cachedResult.query_url, tweet.tweet.created_at)
-      db.evaluation_enriched.insert(evaluation)
+      db.evaluation_enriched.save(evaluation)
     });
   });
 });
