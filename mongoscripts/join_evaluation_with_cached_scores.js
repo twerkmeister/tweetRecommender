@@ -37,6 +37,7 @@ db.evaluation_cache_advanced.find().forEach(function(cachedResult){
       evaluation.scores.lda_cossim = tweet.scores[0].lda_cossim
       evaluation.scores.language_model = tweet.scores[1].language_model
       evaluation.tweet_length = tweet.tweet.terms.length // number of terms after stopword removal and stemming
+      evaluation.chars = tweet.tweet.text.length
       evaluation.times = get_time_values(cachedResult.query_url, tweet.tweet.created_at)
       db.evaluation_enriched.insert(evaluation)
     });
