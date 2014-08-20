@@ -32,12 +32,21 @@ function get_time_values(query_url, tweet_creation_time) {
 
 db.evaluation_cache_advanced.find().forEach(function(cachedResult){
   cachedResult.tweet_list.forEach(function(tweet){
+    var user = db.tweets.find({
+      "user.screen_name": tweet.tweet.user.screen_name
+    }).limit(1).next().user;
     db.evaluation.find({webpage: cachedResult.query_url, tweet:tweet.tweet._id + ""}).forEach(function(evaluation){
       evaluation.scores = {}
       evaluation.scores.lda_cossim = tweet.scores[0].lda_cossim
       evaluation.scores.language_model = tweet.scores[1].language_model
       evaluation.tweet_length = tweet.tweet.terms.length // number of terms after stopword removal and stemming
       evaluation.chars = tweet.tweet.text.length
+      evaluation.isverified = user.verified
+      evaluation.followers_count = tweet.user.followers_count
+      evaluation.statuses_count = tweet.user.statuses_count
+      evaluation.listed_count = user.listed_count
+      evaluation.friends_count = user.friends_count
+      evaluation.userid = user.user_id
       evaluation.times = get_time_values(cachedResult.query_url, tweet.tweet.created_at)
       db.evaluation_enriched.save(evaluation)
     });
