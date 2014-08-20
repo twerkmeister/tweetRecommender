@@ -162,7 +162,7 @@ $(function () {
     template : _.template($("#article-template").html()),
     render : function() {      
       this.$el.html(this.template(this.model.toJSON()));
-      if (this.model.get("num_articles") == "17")
+      if (this.model.get("num_articles") == "16")
         finished = true;
       return this;
     },
