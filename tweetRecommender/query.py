@@ -171,10 +171,10 @@ def run(url, gatherer, rankers, filters,
                  tweets_coll, webpages_coll, limit)
 
 def choose_tweets(tweets):
-    MIN_RANDOM = 11
-    MAX_RANDOM = 100#len(tweets)-1
-    NUM_TOP_TWEETS = 10
-    NUM_TOTAL_TWEETS = 15
+    MIN_RANDOM = min(75, len(tweets)/2)
+    MAX_RANDOM = min(200, len(tweets)-1) #len(tweets)-1
+    NUM_TOP_TWEETS = 5
+    NUM_TOTAL_TWEETS = 10
 
     chosen = []
     getRandom = False
@@ -247,7 +247,7 @@ def evaluation_run(query_url):
         cache_collection.insert({'query_url': query_url, 'tweet_list': cache_tweet_list})
 
     else:
-        result_list = [(0, tweet['tweet']) for tweet in cached_results['tweets']]
+        result_list = [(0, tweet['tweet']) for tweet in cached_results['tweet_list']]
     random.shuffle(result_list)
     return result_list
 
