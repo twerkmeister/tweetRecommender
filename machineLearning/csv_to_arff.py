@@ -18,7 +18,7 @@ def csv_to_arff(csv_filename, arff_filename, attributes, relation = "nothing"):
     csv_file_sniff.close()  
 
 if __name__ == '__main__':    
-    attributes = [("webpage","string"),("rating","real"),("tweet","string"), ("uid","string")
+    attributes = [("webpage","string"),("rating","{1,-1}"),("tweet","string"), ("uid","string")
                   ,("lda","real"),("language_model","real"), 
                   ("tweet_length","integer"),("chars","integer"),
                    ("isverified","{true,false}"),("followers_count","integer"), ("statuses_count","integer"),
