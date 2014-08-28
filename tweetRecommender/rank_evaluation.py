@@ -11,7 +11,7 @@ WEBPAGES_SUBSAMPLE = 'sample_webpages'
 
 EVALUATION_GATHERER = "terms"
 EVALUATION_FILTERS = []
-EVALUATION_RANKERS = ['lda_cossim', 'language_model', 'adaboost']
+EVALUATION_RANKERS = ['lda_cossim', 'language_model', 'adaboost', 'logistic_regression']
 CACHED_RESULTS_COLLECTION = 'evaluation_cache_fresh'
 
 @functools32.lru_cache()
