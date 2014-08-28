@@ -20,8 +20,9 @@ with open(OUTPUT_PATH, "w") as output:
     output.write("@RELATION ratings\n")
 
     for ranker in EVALUATION_RANKERS:
-        output.write("@ATTRIBUTE %s NUMERIC\n" % ranker)
+        output.write("@ATTRIBUTE %s real\n" % ranker)
 
+    output.write("@ATTRIBUTE rating {yes,no}\n")
     output.write("@DATA\n")
 
     x = mongo.coll("evaluation").aggregate([{"$group": {
@@ -43,23 +44,21 @@ with open(OUTPUT_PATH, "w") as output:
         for tweet in webpage["tweets"]:
             cache = mongo.coll("evaluation_cache_advanced").find_one(
                 {"query_url": query_url}, 
-                {"tweets": {"$elemMatch": {"tweet._id": ObjectId(tweet["tweet"])}}}
+                {"tweet_list": {"$elemMatch": {"tweet._id": ObjectId(tweet["tweet"])}}}
             )
 
-            try:
-                for score in cache["tweets"][0]["scores"]:
-                    if score.keys()[0] == "lda_cossim":
-                        value1 = score.values()[0]
-                    elif score.keys()[0] == "language_model":
-                        value2 = score.values()[0]
-                    else:
-                        value3 = score.values()[0]
+            for score in cache["tweet_list"][0]["ranks"]:
+                if score.keys()[0] == "lda_cossim":
+                    value1 = score.values()[0]
+                elif score.keys()[0] == "language_model":
+                    value2 = score.values()[0]
+                else:
+                    value3 = score.values()[0]
 
-                rating = -1
-                if tweet["positive"] > tweet["negative"]:
-                    rating = 1
+            rating = "no"
+            if tweet["positive"] > tweet["negative"]:
+                rating = "yes"
 
-                output.write("%f,%f,%f,%f\n" % (value1, value2, value3, rating))
-            except Exception as e:
-                print e
+            output.write("%d,%d,%d,%s\n" % (len(cache["tweet_list"])-value1, len(cache["tweet_list"])-value2, len(cache["tweet_list"])-value3, rating))
+
 
