@@ -66,147 +66,154 @@ class WekaClassifier(object):
     def classify(cls, i):
         """ generated source for method classify """
         sums = [0,0]
-        sums[int(WekaClassifier_0.classify(i))] += 1.0370543956686762
-        sums[int(WekaClassifier_1.classify(i))] += 0.42646991959300357
-        sums[int(WekaClassifier_2.classify(i))] += 0.6130850163011905
-        sums[int(WekaClassifier_3.classify(i))] += 0.35939569291671875
-        sums[int(WekaClassifier_4.classify(i))] += 0.3008681122335692
-        sums[int(WekaClassifier_5.classify(i))] += 0.3040994319524441
-        sums[int(WekaClassifier_6.classify(i))] += 0.14540078862818462
-        sums[int(WekaClassifier_7.classify(i))] += 0.3249327557181082
-        sums[int(WekaClassifier_8.classify(i))] += 0.05379180819513292
-        sums[int(WekaClassifier_9.classify(i))] += 0.06882327060765335        
-        return float(sums[0]-sums[1])
+        sums[int(WekaClassifier_0.classify(i))] += 1.2134644010075073
+        sums[int(WekaClassifier_1.classify(i))] += 0.57177685574344
+        sums[int(WekaClassifier_2.classify(i))] += 0.40154496884580815
+        sums[int(WekaClassifier_3.classify(i))] += 0.35999934750119333
+        sums[int(WekaClassifier_4.classify(i))] += 0.36937329276984643
+        sums[int(WekaClassifier_5.classify(i))] += 0.16351990613377496
+        sums[int(WekaClassifier_6.classify(i))] += 0.1396078832952814
+        sums[int(WekaClassifier_7.classify(i))] += 0.15882943193304253
+        sums[int(WekaClassifier_8.classify(i))] += 0.1284505298097081
+        sums[int(WekaClassifier_9.classify(i))] += 0.09903161346969916        
+        return float(sums[0] - sums[1])
 
 
 class WekaClassifier_0(object):
-    """ generated source for class WekaClassifier_0 """
+    """ lda """
     @classmethod
     def classify(cls, i):
         """ generated source for method classify """
+        #  lda 
         if i[1] == None:
-            return 0
-        elif (float(i[1])) <= 0.7680270780214076:
+            return 1
+        elif (float(i[1])) <= 0.610257172808176:
             return 1
         else:
             return 0
 
 
 class WekaClassifier_1(object):
-    """ generated source for class WekaClassifier_1 """
+    """ lda """
     @classmethod
     def classify(cls, i):
         """ generated source for method classify """
+        #  lda 
         if i[1] == None:
             return 1
-        elif (float(i[1])) <= 0.8924443408713842:
+        elif (float(i[1])) <= 0.1142382568740966:
             return 1
         else:
-            return 0
+            return 1
 
 
 class WekaClassifier_2(object):
-    """ generated source for class WekaClassifier_2 """
+    """ lda """
     @classmethod
     def classify(cls, i):
         """ generated source for method classify """
-        if i[10] == None:
-            return 1
-        elif (float(i[10])) <= 4.147055E8:
+        #  lda 
+        if i[1] == None:
             return 0
-        else:
+        elif (float(i[1])) <= 0.1142382568740966:
             return 1
+        else:
+            return 0
 
 
 class WekaClassifier_3(object):
-    """ generated source for class WekaClassifier_3 """
+    """ relative_time_difference """
     @classmethod
     def classify(cls, i):
         """ generated source for method classify """
-        if i[10] == None:
+        #  relative_time_difference 
+        if i[11] == None:
             return 1
-        elif (float(i[10])) <= 4.6651785E9:
+        elif (float(i[11])) <= -4.831985E8:
             return 1
         else:
             return 0
 
 
 class WekaClassifier_4(object):
-    """ generated source for class WekaClassifier_4 """
+    """ tweet_length """
     @classmethod
     def classify(cls, i):
         """ generated source for method classify """
-        if i[8] == None:
-            return 0
-        elif (float(i[8])) <= 2.5:
-            return 0
+        #  tweet_length 
+        if i[3] == None:
+            return 1
+        elif (float(i[3])) <= 14.5:
+            return 1
         else:
             return 1
 
 
 class WekaClassifier_5(object):
-    """ generated source for class WekaClassifier_5 """
+    """ tweet_length """
     @classmethod
     def classify(cls, i):
         """ generated source for method classify """
-        if i[2] == None:
+        #  tweet_length 
+        if i[3] == None:
             return 0
-        elif (float(i[2])) <= -8.577972043571158:
-            return 1
+        elif (float(i[3])) <= 14.5:
+            return 0
         else:
-            return 0
+            return 1
 
 
 class WekaClassifier_6(object):
-    """ generated source for class WekaClassifier_6 """
+    """ lda """
     @classmethod
     def classify(cls, i):
         """ generated source for method classify """
-        if i[11] == None:
+        #  lda 
+        if i[1] == None:
             return 1
-        elif (float(i[11])) <= -4.5163605E9:
-            return 0
+        elif (float(i[1])) <= 0.02728102940334218:
+            return 1
         else:
             return 1
 
 
 class WekaClassifier_7(object):
-    """ generated source for class WekaClassifier_7 """
+    """ lda """
     @classmethod
     def classify(cls, i):
         """ generated source for method classify """
-        if i[9] == None:
+        #  lda 
+        if i[1] == None:
             return 0
-        elif (float(i[9])) <= 208.5:
+        elif (float(i[1])) <= 0.02728102940334218:
             return 1
         else:
             return 0
 
 
 class WekaClassifier_8(object):
-    """ generated source for class WekaClassifier_8 """
+    """ chars """
     @classmethod
     def classify(cls, i):
         """ generated source for method classify """
-        if i[11] == None:
-            return 0
-        elif (float(i[11])) <= -4.5163605E9:
-            return 0
-        else:
-            return 0
-
-
-class WekaClassifier_9(object):
-    """ generated source for class WekaClassifier_9 """
-    @classmethod
-    def classify(cls, i):
-        """ generated source for method classify """
-        if i[11] == None:
-            return 0
-        elif (float(i[11])) <= -4.5163605E9:
-            return 0
+        #  chars 
+        if i[4] == None:
+            return 1
+        elif (float(i[4])) <= 141.5:
+            return 1
         else:
             return 1
 
 
-        
+class WekaClassifier_9(object):
+    """ chars """
+    @classmethod
+    def classify(cls, i):
+        """ generated source for method classify """
+        #  chars 
+        if i[4] == None:
+            return 0
+        elif (float(i[4])) <= 141.5:
+            return 0
+        else:
+            return 1
