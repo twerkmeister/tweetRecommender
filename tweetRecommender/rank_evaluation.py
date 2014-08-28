@@ -3,6 +3,7 @@ from tweetRecommender.mongo import mongo
 from tweetRecommender.query import run
 from bson import ObjectId
 import functools32
+import sys
 
 TWEETS_COLLECTION = 'tweets'
 WEBPAGES_COLLECTION = 'webpages'
@@ -58,16 +59,17 @@ def evaluate_collections():
     for webpage in mongo.coll(CACHED_RESULTS_COLLECTION).find({},{"query_url":1}):                     
         count += 1        
         value = 0                                
-        print "\nevaluated article: ", count
+        sys.stdout.write("\nevaluated article: %s\n" % count)
         ranks_dict = calculate_MAP(webpage["query_url"])                                    
         for key in ranks_dict.keys():
-            print ("AP %s : %f" % (key,ranks_dict[key]))                        
+            sys.stdout.write("AP %s : %f\n" % (key,ranks_dict[key]))                        
             if key in rank_map:
                 value = rank_map.get(key)
             rank_map[key] = ranks_dict[key] + value                
-    print "\n"                                                                                                
+    sys.stdout.write("\n")                                                                                                
     for ranker in EVALUATION_RANKERS:        
-        print "Average MAP %s : %f" % (ranker, (rank_map[ranker]/count))
+        sys.stdout.write("Average MAP %s : %f\n" % (ranker, (rank_map[ranker]/count)))
+    sys.stdout.flush()
                       
 if __name__ == '__main__':
     evaluate_collections()         
