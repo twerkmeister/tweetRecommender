@@ -4,5 +4,6 @@ tmp/
 dataAnalysis/*.png
 dataAnalysis/.RData
 dataAnalysis/.Rhistory
+completeDBDump/
 
 
