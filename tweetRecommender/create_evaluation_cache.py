@@ -1,4 +1,4 @@
-from tweetRecommender.query import evaluation_run as create_cache_for
+from tweetRecommender.query import update_evaluation_cache as create_cache_for
 
 import sys
 
