@@ -44,7 +44,10 @@ def calculate_MAP(query_url):
             if (ObjectId(tweet["_id"]) in collections):                                
                 relevants += 1
                 precisions.append(relevants/position)
-        meanap = sum(precisions)/relevants
+        if relevants == 0:
+            meanap = 0
+        else:
+            meanap = sum(precisions)/relevants
         map_dict[ranker] = meanap                                                                           
     mongo.coll(CACHED_RESULTS_COLLECTION).update({"query_url":query_url},{"$set": { "eval.map" : map_dict }})
     return map_dict
