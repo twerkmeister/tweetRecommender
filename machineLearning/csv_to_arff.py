@@ -18,6 +18,12 @@ def csv_to_arff(csv_filename, arff_filename, attributes, relation = "nothing"):
     csv_file_sniff.close()  
 
 if __name__ == '__main__':    
-    attributes = [("webpage","string"),("rating","real"),("tweet","string"), ("uid","string")
-                  ,("lda","real"),("language_model","real"), ("text_overlap","real"), ("length", "integer")]
-    csv_to_arff('../dump/twitter_subset/evaluationEnriched.csv', "result.arff", attributes)
+    attributes = [("webpage","string"),("rating","{1,-1}"),("tweet","string"), ("uid","string")
+                  ,("lda","real"),("language_model","real"), 
+                  ("tweet_length","integer"),("chars","integer"),
+                   ("isverified","{true,false}"),("followers_count","integer"), ("statuses_count","integer"),
+                   ("listed_count","integer"),("friends_count","integer"),
+                   ("absolute_time_difference","integer"),("relative_time_difference","integer"),
+                   ("binary_decision","integer"),("capped_time_after","integer"),
+                   ("contains_url","{true,false}"),("url_count","integer"),("hashtag_count","integer")]
+    csv_to_arff('../dump/twitter_subset/evaluationEnriched2.csv', "result.arff", attributes)
