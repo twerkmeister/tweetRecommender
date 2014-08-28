@@ -24,6 +24,6 @@ if __name__ == '__main__':
                    ("isverified","{true,false}"),("followers_count","integer"), ("statuses_count","integer"),
                    ("listed_count","integer"),("friends_count","integer"),
                    ("absolute_time_difference","integer"),("relative_time_difference","integer"),
-                   ("binary_decision","integer"),("capped_time_after","integer"),
+                   ("binary_decision","{1.0,-1.0}"),("capped_time_after","integer"),
                    ("contains_url","{true,false}"),("url_count","integer"),("hashtag_count","integer")]
-    csv_to_arff('../dump/twitter_subset/evaluationEnriched2.csv', "result.arff", attributes)
+    csv_to_arff('../dump/twitter_subset/evaluationEnriched_08-28.csv', "result.arff", attributes)
