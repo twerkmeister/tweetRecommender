@@ -75,8 +75,8 @@ class WekaClassifier(object):
         sums[int(WekaClassifier_6.classify(i))] += 0.1343282827733146
         sums[int(WekaClassifier_7.classify(i))] += 0.2047296821951523
         sums[int(WekaClassifier_8.classify(i))] += 0.09234230870315459
-        sums[int(WekaClassifier_9.classify(i))] += 0.08826427645760641        
-        return float(sums[0])
+        sums[int(WekaClassifier_9.classify(i))] += 0.08826427645760641            
+        return float(sums[0]-sums[1])
 
 
 class WekaClassifier_0(object):
