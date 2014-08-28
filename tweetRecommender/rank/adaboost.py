@@ -67,7 +67,7 @@ class WekaClassifier(object):
     @classmethod
     def classify(cls, i):
         """ generated source for method classify """
-        sums = [None]*2
+        sums = [0,0]
         sums[int(WekaClassifier_0.classify(i))] += 1.2134644010075073
         sums[int(WekaClassifier_1.classify(i))] += 0.57177685574344
         sums[int(WekaClassifier_2.classify(i))] += 0.40154496884580815
@@ -211,7 +211,7 @@ class WekaClassifier_8(object):
         #  chars 
         if i[4] == None:
             return 1
-        elif (float(i[4])).doubleValue() <= 141.5:
+        elif (float(i[4])) <= 141.5:
             return 1
         else:
             return 1
