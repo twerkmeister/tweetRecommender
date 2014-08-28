@@ -1,3 +1,4 @@
+print("test")
 function get_absolute_time(webpage_creation_time, tweet_creation_time) {
   return Math.abs(webpage_creation_time - tweet_creation_time)
 }
@@ -30,22 +31,24 @@ function get_time_values(query_url, tweet_creation_time) {
   return time_values
 }
 
-db.evaluation_cache_advanced.find().forEach(function(cachedResult){
+db.evaluation_cache_fresh.find().forEach(function(cachedResult){
+  print("starting " + cachedResult.query_url + " with " + cachedResult.tweet_list.length + "tweets")
   cachedResult.tweet_list.forEach(function(tweet){
-
     /* Only needs to be done once per tweet */
-    var complete_tweet_data = db.sample_tweets.find({
+    var complete_tweet_data = db.sample_tweets.findOne({
       tweet_id: tweet.tweet.tweet_id
     },{
       hashtags: 1,
       full_urls: 1
-    }).limit(1).next();
-    var user = db.tweets.find({
+    });
+    var user = db.tweets.findOne({
       "user.screen_name": tweet.tweet.user.screen_name
-    }).limit(1).next().user;
+    }).user;
     var times = get_time_values(cachedResult.query_url, tweet.tweet.created_at);
     var contains_url = (complete_tweet_data.full_urls.indexOf(cachedResult.query_url) == -1) ? false : true
 
+    var count = db.evaluation.find({webpage: cachedResult.query_url, tweet:tweet.tweet._id + ""}).count()
+    print(count + " tweet_id: " + tweet.tweet._id)
     db.evaluation.find({webpage: cachedResult.query_url, tweet:tweet.tweet._id + ""}).forEach(function(evaluation){
       evaluation.scores = {}
       evaluation.scores.lda_cossim = tweet.scores[0].lda_cossim
@@ -53,8 +56,8 @@ db.evaluation_cache_advanced.find().forEach(function(cachedResult){
       evaluation.tweet_length = tweet.tweet.terms.length // number of terms after stopword removal and stemming
       evaluation.chars = tweet.tweet.text.length
       evaluation.isverified = user.verified
-      evaluation.followers_count = tweet.tweet.user.followers_count
-      evaluation.statuses_count = tweet.tweet.user.statuses_count
+      evaluation.followers_count = user.followers_count
+      evaluation.statuses_count = user.statuses_count
       evaluation.listed_count = user.listed_count
       evaluation.friends_count = user.friends_count
       evaluation.userid = user.user_id
