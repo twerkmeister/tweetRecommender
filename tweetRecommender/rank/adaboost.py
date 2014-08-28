@@ -26,7 +26,7 @@ def get_capped_time(webpage_creation_time, tweet_creation_time):
         return tweet_creation_time - webpage_creation_time
     return 0
 
-def score(tweet, webpage):    
+def get_features(tweet, webpage):
     tweet_length = len(tweet["terms"])     #number of terms after stopword removal and stemming
     chars = len(tweet["text"])
     isverified = tweet["user"]["verified"]
@@ -49,13 +49,14 @@ def score(tweet, webpage):
     lda_scores = machinery.load_component(machinery.SCORE_PACKAGE, "lda_cossim", machinery.SCORE_METHOD)(tweet, webpage)
     lm_scores = machinery.load_component(machinery.SCORE_PACKAGE, "language_model", machinery.SCORE_METHOD)(tweet, webpage)
     #the first element is rank in weka, set to none)        
-    features = [None, lda_scores, lm_scores, tweet_length, chars, isverified,
+    return [None, lda_scores, lm_scores, tweet_length, chars, isverified,
                 followers_count, statuses_count, listed_count, friends_count, 
                 absolute_time_difference, relative_time_difference, binary_decision,
                 capped_time_after, contains_url, url_count, hashtag_count]
-    #LOG.info("features are : ")
-    #LOG.info(features)
-    return WekaClassifier.classify(features)       
+    
+
+def score(tweet, webpage):            
+    return WekaClassifier.classify(get_features(tweet, webpage))       
 
 score.fields = ['terms', 'user.verified', 'user.followers_count', 'user.statuses_count',
                 'user.listed_count', 'user.friends_count', 'created_at', 'hashtags', 'full_urls']
