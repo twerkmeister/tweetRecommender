@@ -41,7 +41,7 @@ db.evaluation_cache_fresh.find().forEach(function(cachedResult){
       hashtags: 1,
       full_urls: 1
     });
-    var user = db.tweets.findOne({
+    var user = db.sample_tweets.findOne({
       "user.screen_name": tweet.tweet.user.screen_name
     }).user;
     var times = get_time_values(cachedResult.query_url, tweet.tweet.created_at);
