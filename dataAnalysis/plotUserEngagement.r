@@ -1,6 +1,6 @@
 source("loadData.r")
 
-dataset <- e2
+dataset <- ee2
 
 t <- table(dataset$uid)
-barplot(t, ylab="#tweets evaluated", xlab="users", axisnames = FALSE)
+barplot(t, ylab="#tweets evaluated", xlab="each bar represents a single user", axisnames = FALSE, main="user engagement")
